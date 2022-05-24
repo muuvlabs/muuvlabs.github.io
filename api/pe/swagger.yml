@@ -1,0 +1,4437 @@
+swagger: "2.0"
+info:
+  description: "This API was created for SEB, for the Program Engine. This is the full API, used both for the Admin tool and the public-facing requests used by the SDK embedded into the Anytime Fitness and Stronger U apps."
+  version: "1.0.0"
+  title: "SEB Program Engine Full API"
+  contact:
+    email: "micah@muuvlabs.com"
+host: "pe.sebrands.com"
+basePath: "/"
+tags:
+- name: "activities"
+  description: "Admins Only: Activity Info"
+- name: "assets"
+  description: "Admins Only: Asset uploading"
+- name: "assignments"
+  description: "Admins Only: Assignments Info"
+- name: "brands"
+  description: "Admins Only: Settings for each brand (Stronger U, The Bar Method)"
+- name: "categories"
+  description: "Admins Only: Categories Info"
+- name: "content_tags"
+  description: "Admins Only: Content Tags"
+- name: "matrices"
+  description: "Admins Only: Matrices Info"
+- name: "members"
+  description: "Admins Only: Info and settings about the members"
+- name: "phase_sequences"
+  description: "Admins Only: Connecting phases to specific sequences"
+- name: "phases"
+  description: "Admins Only: Phases Info"
+- name: "program_brands"
+  description: "Admins Only: Connecting programs to specific brands"
+- name: "program_phases"
+  description: "Admins Only: Connecting programs to specific phases"
+- name: "programs"
+  description: "Programs Info"
+- name: "sequence_tasks"
+  description: "Admins Only: Connecting sequences to specific tasks"
+- name: "sequences"
+  description: "Admins Only: Sequences Info"
+- name: "series_tasks"
+  description: "Admins Only: Connecting series to specific tasks"
+- name: "series"
+  description: "Admins Only: Series Info"
+- name: "tag_groups"
+  description: "Tag groups"
+- name: "tags"
+  description: "Admins Only: Tags"
+- name: "translations"
+  description: "Admins Only: Translations"
+schemes:
+- "https"
+paths:
+  /pe/activities:
+    get:
+      tags:
+      - "activities"
+      summary: "Admins: Get all activities"
+      description: "Returns results for all the activities in the system"
+      operationId: "peActivitiesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "affected_type"
+        in: "query"
+        description: "The model name for the resource that you want to see the activity of. Example: `Program`"
+        required: false
+        type: "string"
+      - name: "affected_id"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ActivityResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+  /pe/activities/{activityId}:
+    get:
+      tags:
+      - "activities"
+      summary: "Admins: Find member by ID"
+      description: "Get a specific member's info"
+      operationId: "peActivitiesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "activityId"
+        in: "path"
+        description: "ID of member to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Activity"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+  /pe/assets:
+    post:
+      tags:
+      - "assets"
+      summary: "Admins: Upload an asset (poster) to a resource."
+      description: "To add a new phase"
+      operationId: "peAssetsCreate"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "asset_type"
+        in: "formData"
+        type: "string"
+        description: "Not sure how these are used. Possible values: `image` | `text` | `audio` | `video`"
+      - name: "slot"
+        in: "formData"
+        type: "string"
+        description: "Maps directly to the foreign key name, like `poster_id` and `transcript_id`. Possible values: `poster` | `transcript` | `audio` | `video`"
+      - name: "assetable"
+        in: "formData"
+        type: "string"
+        description: "The model name that this asset goes to, like `Assignment`."
+      - name: "assetable_id"
+        in: "formData"
+        type: "string"
+        description: "The ID of the resources that this asset goes to, like `123`. User with the 'assetable' field above."
+      - name: "file"
+        in: "formData"
+        type: "file"
+        description: "The file to upload."
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Asset"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/assignments/config:
+    get:
+      tags:
+      - "assignments"
+      summary: "Admins: Get the config object for assignments"
+      description: "This will be used in the form for editing assignments to populate the list of choices for actions, as well as the inputs that each action needs."
+      operationId: "peAssignmentsConfig"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/AssignmentConfig"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+  /pe/assignments:
+    get:
+      tags:
+      - "assignments"
+      summary: "Admins: Get all assignments"
+      description: "Returns results for all the assignments in the system"
+      operationId: "peAssignmentsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "term"
+        in: "query"
+        description: "Search terms - search based on name or description"
+        required: false
+        type: "string"
+      - name: "categories"
+        in: "query"
+        description: "Dash-delimited list of category ids to include. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "include_tags"
+        in: "query"
+        description: "Dash-delimited list of tag IDs to include. Example: `10-24`."
+        required: false
+        type: "string"
+      - name: "exclude_tags"
+        in: "query"
+        description: "Dash-delimited list of tag IDs to exclude. Example: `10-24`."
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/AssignmentResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "assignments"
+      summary: "Admins: Creates a assignment with form data"
+      description: "To add a new assignment"
+      operationId: "peAssignmentsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the assignment"
+        required: false
+        type: "string"
+      - name: "description"
+        in: "formData"
+        description: "Description of the assignment"
+        required: false
+        type: "string"
+      - name: "category_id"
+        in: "formData"
+        description: "Category ID for this assignment"
+        required: false
+        type: "integer"
+      - name: "poster_url"
+        in: "formData"
+        description: "URL of the poster to use, if a poster image is not uploaded"
+        required: false
+        type: "string"
+      - name: "action"
+        in: "formData"
+        description: "One of the specific actions that this assignment should use"
+        required: false
+        type: "string"
+        enum:
+        - "none"
+        - "browser_external"
+        - "browser_internal"
+        - "document"
+        - "player_video_manual"
+        - "player_video_vhs"
+        - "player_video_youtube"
+        - "player_audio_manual"
+        - "player_audio_vhs"
+        - "podcast"
+        - "workout_af"
+        - "workout_muuv"
+        - "form_foodlog"
+      - name: "action_obj"
+        in: "formData"
+        description: "JSON object with the parameters for the action. Example: `{\"mp4_url\": \"https://bacon.com/video.mp4\",\n\"hls_url\": \"https://bacon.com/video.m3u8\",\n\"vtt_url\": \"https://bacon.com/video.vtt\"\n}`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Assignment"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/assignments/{assignmentId}:
+    get:
+      tags:
+      - "assignments"
+      summary: "Admins: Find assignment by ID"
+      description: "Get a specific assignment info"
+      operationId: "peAssignmentsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "assignmentId"
+        in: "path"
+        description: "ID of the assignment to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Assignment"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "assignments"
+      summary: "Admins: Updates a assignment with form data"
+      description: "Change the data of a assignment"
+      operationId: "peAssignmentsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "assignmentId"
+        in: "path"
+        description: "ID of assignment to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the assignment"
+        required: false
+        type: "string"
+      - name: "description"
+        in: "formData"
+        description: "Description of the assignment"
+        required: false
+        type: "string"
+      - name: "category_id"
+        in: "formData"
+        description: "Category ID for this assignment"
+        required: false
+        type: "integer"
+      - name: "poster_url"
+        in: "formData"
+        description: "URL of the poster to use, if a poster image is not uploaded"
+        required: false
+        type: "string"
+      - name: "action"
+        in: "formData"
+        description: "One of the specific actions that this assignment should use"
+        required: false
+        type: "string"
+        enum:
+        - "none"
+        - "browser_external"
+        - "browser_internal"
+        - "document"
+        - "player_video_manual"
+        - "player_video_vhs"
+        - "player_video_youtube"
+        - "player_audio_manual"
+        - "player_audio_vhs"
+        - "podcast"
+        - "workout_af"
+        - "workout_muuv"
+        - "form_foodlog"
+      - name: "action_obj"
+        in: "formData"
+        description: "JSON object with the parameters for the action. Example: `{\"mp4_url\": \"https://bacon.com/video.mp4\",\n\"hls_url\": \"https://bacon.com/video.m3u8\",\n\"vtt_url\": \"https://bacon.com/video.vtt\"\n}`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Assignment"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "assignments"
+      summary: "Admins: Deletes a assignment"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peAssignmentsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "assignmentId"
+        in: "path"
+        description: "ID of assignment to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Assignment"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/brands:
+    get:
+      tags:
+      - "brands"
+      summary: "Admins: Get all brands"
+      description: "Returns results for all the brands in the system"
+      operationId: "peBrandsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      - name: "enabled"
+        in: "query"
+        description: "For viewing the brands that are enabled or not, or all brands. Default is to show all brands."
+        required: false
+        type: "string"
+        enum:
+        - "all"
+        - "1"
+        - "0"
+        default: "all"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/BrandResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "brands"
+      summary: "Admins: Creates a brand with form data"
+      description: "This won't be used much, just adding a new Brand"
+      operationId: "peBrandsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "ident"
+        in: "formData"
+        description: "Short code of the brand. Should ideally be one of: `su`, `tbm`, `af` though we can add more brands also."
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Full name of the brand, like `Stronger U`"
+        required: false
+        type: "string"
+      - name: "is_enabled"
+        in: "formData"
+        description: "Is this brand using the service?"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Brand"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/brands/{brandIdent}:
+    get:
+      tags:
+      - "brands"
+      summary: "Admins: Find brand by short code string"
+      description: "We're using the code instead of the integer as the primary identifier. So using 'su', 'tbm', or 'af'"
+      operationId: "peBrandsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brandIdent"
+        in: "path"
+        description: "Short code of brand to return"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Brand"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "brands"
+      summary: "Admins: Updates a brand with form data"
+      description: "This is used for defaults for this brand."
+      operationId: "peBrandsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brandIdent"
+        in: "path"
+        description: "Short code of brand to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Full name of the brand, like `Stronger U`"
+        required: false
+        type: "string"
+      - name: "is_enabled"
+        in: "formData"
+        description: "Is this brand using the service?"
+        required: false
+        type: "boolean"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Brand"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/categories:
+    get:
+      tags:
+      - "categories"
+      summary: "Admins: Get all categories"
+      description: "Returns results for all the categories in the system"
+      operationId: "peCategoriesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "term"
+        in: "query"
+        description: "Search terms - search based on name"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/CategoryResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "categories"
+      summary: "Admins: Creates a category with form data"
+      description: "To add a new category"
+      operationId: "peCategoriesCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the category"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Category"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/categories/{categoryId}:
+    get:
+      tags:
+      - "categories"
+      summary: "Admins: Find category by ID"
+      description: "Get a specific category info"
+      operationId: "peCategoriesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "categoryId"
+        in: "path"
+        description: "ID of the category to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Category"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "categories"
+      summary: "Admins: Updates a category with form data"
+      description: "Change the data of a category"
+      operationId: "peCategoriesUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "categoryId"
+        in: "path"
+        description: "ID of category to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the category"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Category"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "categories"
+      summary: "Admins: Deletes a category"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peCategoriesDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "categoryId"
+        in: "path"
+        description: "ID of category to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Category"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/content_tags:
+    get:
+      tags:
+      - "content_tags"
+      summary: "Admins: Get all content tags"
+      description: "Returns results for all the content_tags in the system"
+      operationId: "peContentTagsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTagResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "content_tags"
+      summary: "Admins: Creates a content tag with form data"
+      description: "To add a new content tags"
+      operationId: "peContentTagsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "content_type"
+        in: "formData"
+        description: "Model name of the resource to be tagged."
+        required: false
+        type: "string"
+      - name: "content_id"
+        in: "formData"
+        description: "ID of the resource to be tagged."
+        required: false
+        type: "string"
+      - name: "tag_id"
+        in: "formData"
+        description: "The tag that should be added."
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/content_tags/{contentTagId}:
+    get:
+      tags:
+      - "content_tags"
+      summary: "Admins: Find content tag by ID"
+      description: "Get a specific content tag's info"
+      operationId: "peContentTagsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "contentTagId"
+        in: "path"
+        description: "ID of the content tag to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "content_tags"
+      summary: "Admins: Updates a content tag with form data"
+      description: "Join table for how things are tagged."
+      operationId: "peContentTagsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "contentTagId"
+        in: "path"
+        description: "ID of tag to update"
+        required: true
+        type: "string"
+      - name: "content_type"
+        in: "formData"
+        description: "Model name of the resource to be tagged."
+        required: false
+        type: "string"
+      - name: "content_id"
+        in: "formData"
+        description: "ID of the resource to be tagged."
+        required: false
+        type: "string"
+      - name: "tag_id"
+        in: "formData"
+        description: "The tag that should be added."
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "content_tags"
+      summary: "Admins: Deletes a content tag"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peContentTagsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "contentTagId"
+        in: "path"
+        description: "ID of content tag to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/content_tags/{contentType}/{contentId}/{tagId}:
+    delete:
+      tags:
+      - "content_tags"
+      summary: "Admins: Deletes a content tag"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peContentTagsDeleteAlternate"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "contentType"
+        in: "path"
+        description: "Content type of record, like 'Assignment'"
+        required: true
+        type: "string"
+      - name: "contentId"
+        in: "path"
+        description: "ID of content, like the Assignment ID"
+        required: true
+        type: "string"
+      - name: "tagId"
+        in: "path"
+        description: "ID of the tag that is assigned to the content"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/matrices:
+    get:
+      tags:
+      - "matrices"
+      summary: "Admins: Get all matrices"
+      description: "Returns results for all the matrices in the system"
+      operationId: "peMatricesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "term"
+        in: "query"
+        description: "Search terms - search based on name"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MatrixResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "matrices"
+      summary: "Admins: Creates a matrix with form data"
+      description: "To add a new matrix"
+      operationId: "peMatricesCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the matrix"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Matrix"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/matrices/{matrixId}:
+    get:
+      tags:
+      - "matrices"
+      summary: "Admins: Find matrix by ID"
+      description: "Get a specific matrix info"
+      operationId: "peMatricesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "matrixId"
+        in: "path"
+        description: "ID of the matrix to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Matrix"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "matrices"
+      summary: "Admins: Updates a matrix with form data"
+      description: "Change the data of a matrix"
+      operationId: "peMatricesUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "matrixId"
+        in: "path"
+        description: "ID of matrix to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the matrix"
+        required: false
+        type: "string"
+      - name: "rules_obj"
+        in: "formData"
+        description: "JSON object with all the rules for the matrix"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Matrix"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "matrices"
+      summary: "Admins: Deletes a matrix"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peMatricesDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "matrixId"
+        in: "path"
+        description: "ID of matrix to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Matrix"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/members:
+    get:
+      tags:
+      - "members"
+      summary: "Admins: Get all members"
+      description: "Returns results for all the members in the system"
+      operationId: "peMembersIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "enabled"
+        in: "query"
+        description: "For viewing the members that are enabled or not, or all members. Default is to show all members."
+        required: false
+        type: "string"
+        enum:
+        - "all"
+        - "1"
+        - "0"
+        default: "all"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MemberResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+  /pe/members/{memberId}:
+    get:
+      tags:
+      - "members"
+      summary: "Admins: Find member by ID"
+      description: "Get a specific member's info"
+      operationId: "peMembersShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "memberId"
+        in: "path"
+        description: "ID of member to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Member"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+  /pe/phase_sequences:
+    get:
+      tags:
+      - "phase_sequences"
+      summary: "Admins: Get all phase_sequences"
+      description: "Returns results for all the phase_sequences in the system"
+      operationId: "pePhaseSequencesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "phases"
+        in: "query"
+        description: "Dash-delimited list of phase ids to include. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "sequences"
+        in: "query"
+        description: "Dash-delimited list of sequence ids to include. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `phase-sequence`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/PhaseSequenceResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "phase_sequences"
+      summary: "Admins: Creates a phase_sequence with form data"
+      description: "To add a new phase_sequence"
+      operationId: "pePhaseSequencesCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `phase-sequence`"
+        required: false
+        type: "string"
+      - name: "phase_id"
+        in: "formData"
+        description: "ID of the phase."
+        required: false
+        type: "integer"
+      - name: "sequence_id"
+        in: "formData"
+        description: "ID of the sequence."
+        required: false
+        type: "integer"
+      - name: "week"
+        in: "formData"
+        description: "The week this sequence is for in the phase."
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/PhaseSequence"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/phase_sequences/{phaseSequenceId}:
+    get:
+      tags:
+      - "phase_sequences"
+      summary: "Admins: Find phase_sequence by ID"
+      description: "Get a specific phase_sequence info"
+      operationId: "pePhaseSequencesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "phaseSequenceId"
+        in: "path"
+        description: "ID of the phase_sequence to show"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `phase-sequence`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/PhaseSequence"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "phase_sequences"
+      summary: "Admins: Updates a phase_sequence with form data"
+      description: "Change the data of a phase_sequence"
+      operationId: "pePhaseSequencesUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "phaseSequenceId"
+        in: "path"
+        description: "ID of phase_sequence to update"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `phase-sequence`"
+        required: false
+        type: "string"
+      - name: "phase_id"
+        in: "formData"
+        description: "ID of the phase."
+        required: false
+        type: "integer"
+      - name: "sequence_id"
+        in: "formData"
+        description: "ID of the sequence."
+        required: false
+        type: "integer"
+      - name: "week"
+        in: "formData"
+        description: "The week this sequence is for in the phase."
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/PhaseSequence"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "phase_sequences"
+      summary: "Admins: Deletes a phase_sequence"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "pePhaseSequencesDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "phaseSequenceId"
+        in: "path"
+        description: "ID of phase_sequence to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/PhaseSequence"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/phases:
+    get:
+      tags:
+      - "phases"
+      summary: "Admins: Get all phases"
+      description: "Returns results for all the phases in the system"
+      operationId: "pePhasesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "term"
+        in: "query"
+        description: "Search terms - search based on name"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/PhaseResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "phases"
+      summary: "Admins: Creates a phase with form data"
+      description: "To add a new phase"
+      operationId: "pePhasesCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the phase"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Phase"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/phases/{phaseId}:
+    get:
+      tags:
+      - "phases"
+      summary: "Admins: Find phase by ID"
+      description: "Get a specific phase info"
+      operationId: "pePhasesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "phaseId"
+        in: "path"
+        description: "ID of the phase to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Phase"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "phases"
+      summary: "Admins: Updates a phase with form data"
+      description: "Change the data of a phase"
+      operationId: "pePhasesUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "phaseId"
+        in: "path"
+        description: "ID of phase to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the phase"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Phase"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "phases"
+      summary: "Admins: Deletes a phase"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "pePhasesDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "phaseId"
+        in: "path"
+        description: "ID of phase to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Phase"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/program_brands:
+    get:
+      tags:
+      - "program_brands"
+      summary: "Admins: Get all program_brands"
+      description: "Returns results for all the program_brands in the system"
+      operationId: "peProgramBrandsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programs"
+        in: "query"
+        description: "Dash-delimited list of program ids to include. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-brand`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramBrandResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "program_brands"
+      summary: "Admins: Creates a plan_brand with form data"
+      description: "To add a new plan_brand"
+      operationId: "pePlanBrandsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-brand`"
+        required: false
+        type: "string"
+      - name: "program_id"
+        in: "formData"
+        description: "ID of the program."
+        required: false
+        type: "integer"
+      - name: "brand_ident"
+        in: "formData"
+        description: "String code for the brand, like `af` or `su`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramBrand"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/program_brands/{programBrandId}:
+    get:
+      tags:
+      - "program_brands"
+      summary: "Admins: Find program_brand by ID"
+      description: "Get a specific program_brand info"
+      operationId: "peProgramBrandsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programBrandId"
+        in: "path"
+        description: "ID of the program_brand to show"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-brand`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramBrand"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "program_brands"
+      summary: "Admins: Updates a program_brand with form data"
+      description: "Change the data of a program_brand"
+      operationId: "peProgramBrandsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programBrandId"
+        in: "path"
+        description: "ID of program_brand to update"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-brand`"
+        required: false
+        type: "string"
+      - name: "program_id"
+        in: "formData"
+        description: "ID of the program."
+        required: false
+        type: "integer"
+      - name: "brand_ident"
+        in: "formData"
+        description: "String code for the brand, like `af` or `su`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramBrand"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "program_brands"
+      summary: "Admins: Deletes a program_brand"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peProgramBrandsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programBrandId"
+        in: "path"
+        description: "ID of program_brand to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramBrand"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/program_phases:
+    get:
+      tags:
+      - "program_phases"
+      summary: "Admins: Get all program_phases"
+      description: "Returns results for all the program_phases in the system"
+      operationId: "peProgramPhasesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programs"
+        in: "query"
+        description: "Dash-delimited list of program ids to include. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "phases"
+        in: "query"
+        description: "Dash-delimited list of phase ids to include. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-phase`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramPhaseResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "program_phases"
+      summary: "Admins: Creates a program_phase with form data"
+      description: "To add a new program_phase"
+      operationId: "peProgramPhasesCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-phase`"
+        required: false
+        type: "string"
+      - name: "program_id"
+        in: "formData"
+        description: "ID of the program."
+        required: false
+        type: "integer"
+      - name: "phase_id"
+        in: "formData"
+        description: "ID of the phase."
+        required: false
+        type: "integer"
+      - name: "position"
+        in: "formData"
+        description: "The place this phase should go in the program."
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramPhase"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/program_phases/{programPhaseId}:
+    get:
+      tags:
+      - "program_phases"
+      summary: "Admins: Find program_phase by ID"
+      description: "Get a specific program_phase info"
+      operationId: "peProgramPhasesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programPhaseId"
+        in: "path"
+        description: "ID of the program_phase to show"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-phase`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramPhase"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "program_phases"
+      summary: "Admins: Updates a program_phase with form data"
+      description: "Change the data of a program_phase"
+      operationId: "peProgramPhasesUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programPhaseId"
+        in: "path"
+        description: "ID of program_phase to update"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-phase`"
+        required: false
+        type: "string"
+      - name: "program_id"
+        in: "formData"
+        description: "ID of the program."
+        required: false
+        type: "integer"
+      - name: "phase_id"
+        in: "formData"
+        description: "ID of the phase."
+        required: false
+        type: "integer"
+      - name: "position"
+        in: "formData"
+        description: "The place this phase should go in the program."
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramPhase"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "program_phases"
+      summary: "Admins: Deletes a program_phase"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peProgramPhasesDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programPhaseId"
+        in: "path"
+        description: "ID of program_phase to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramPhase"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/programs:
+    get:
+      tags:
+      - "programs"
+      summary: "Get all programs"
+      description: "Returns results for all the programs in the system"
+      operationId: "peProgramsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "term"
+        in: "query"
+        description: "Search terms - search based on name or description"
+        required: false
+        type: "string"
+      - name: "published"
+        in: "query"
+        description: "For viewing the programs that are published or not, or all programs. Default is to show all programs."
+        required: false
+        type: "string"
+        enum:
+        - "all"
+        - "1"
+        - "0"
+        default: "all"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+    post:
+      tags:
+      - "programs"
+      summary: "Admins: Creates a program with form data"
+      description: "To add a new program"
+      operationId: "peProgramsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the program"
+        required: false
+        type: "string"
+      - name: "description"
+        in: "formData"
+        description: "Description of the program"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Program"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/programs/{programId}:
+    get:
+      tags:
+      - "programs"
+      summary: "Admins: Find program by ID"
+      description: "Get a specific program info"
+      operationId: "peProgramsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programId"
+        in: "path"
+        description: "ID of the program to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Program"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "programs"
+      summary: "Admins: Updates a program with form data"
+      description: "Change the data of a program"
+      operationId: "peProgramsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programId"
+        in: "path"
+        description: "ID of program to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the program"
+        required: false
+        type: "string"
+      - name: "description"
+        in: "formData"
+        description: "Description of the program"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Program"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "programs"
+      summary: "Admins: Deletes a program"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peProgramsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programId"
+        in: "path"
+        description: "ID of program to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Program"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/programs/{programId}/clone:
+    post:
+      tags:
+      - "programs"
+      summary: "Admins: Clone program by ID"
+      description: "Clones a specific program info. Returns the new cloned program"
+      operationId: "peProgramsClone"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programId"
+        in: "path"
+        description: "ID of the program to clone"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Program"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+  /pe/sequence_tasks:
+    get:
+      tags:
+      - "sequence_tasks"
+      summary: "Admins: Get all sequence_tasks"
+      description: "Returns results for all the sequence_tasks in the system"
+      operationId: "peSequenceTasksIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "task_type"
+        in: "query"
+        description: "Model name of the task that you're looking for. Example: `Assignment`"
+        required: false
+        type: "string"
+      - name: "task_id"
+        in: "query"
+        description: "ID of the task that the task_type refers to. Example: `123`"
+        required: false
+        type: "string"
+      - name: "sequences"
+        in: "query"
+        description: "Dash-delimited list of sequence ids to include. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `sequence-task`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SequenceTaskResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "sequence_tasks"
+      summary: "Admins: Creates a sequence_task with form data"
+      description: "To add a new sequence_task"
+      operationId: "peSequenceTasksCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `sequence-task`"
+        required: false
+        type: "string"
+      - name: "sequence_id"
+        in: "formData"
+        description: "ID of the sequence."
+        required: false
+        type: "integer"
+      - name: "task_type"
+        in: "formData"
+        description: "The model name of the resource for the task, like `Assignment`"
+        required: false
+        type: "integer"
+      - name: "task_id"
+        in: "formData"
+        description: "ID of the resource that the task_type refers to."
+        required: false
+        type: "integer"
+      - name: "day"
+        in: "formData"
+        description: "Which day in the sequence is this for? If empty, then it's an unbounded task."
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SequenceTask"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/sequence_tasks/{sequenceTaskId}:
+    get:
+      tags:
+      - "sequence_tasks"
+      summary: "Admins: Find sequence_task by ID"
+      description: "Get a specific sequence_task info"
+      operationId: "peSequenceTasksShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "sequenceTaskId"
+        in: "path"
+        description: "ID of the sequence_task to show"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `sequence-task`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SequenceTask"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "sequence_tasks"
+      summary: "Admins: Updates a sequence_task with form data"
+      description: "Change the data of a sequence_task"
+      operationId: "peSequenceTasksUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "sequenceTaskId"
+        in: "path"
+        description: "ID of sequence_task to update"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `sequence-task`"
+        required: false
+        type: "string"
+      - name: "sequence_id"
+        in: "formData"
+        description: "ID of the sequence."
+        required: false
+        type: "integer"
+      - name: "task_type"
+        in: "formData"
+        description: "The model name of the resource for the task, like `Assignment`"
+        required: false
+        type: "integer"
+      - name: "task_id"
+        in: "formData"
+        description: "ID of the resource that the task_type refers to."
+        required: false
+        type: "integer"
+      - name: "day"
+        in: "formData"
+        description: "Which day in the sequence is this for? If empty, then it's an unbounded task."
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SequenceTask"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "sequence_tasks"
+      summary: "Admins: Deletes a sequence_task"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peSequenceTasksDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "sequenceTaskId"
+        in: "path"
+        description: "ID of sequence_task to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SequenceTask"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/sequences:
+    get:
+      tags:
+      - "sequences"
+      summary: "Admins: Get all sequences"
+      description: "Returns results for all the sequences in the system"
+      operationId: "peSequencesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "term"
+        in: "query"
+        description: "Search terms - search based on name"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SequenceResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "sequences"
+      summary: "Admins: Creates a sequence with form data"
+      description: "To add a new sequence"
+      operationId: "peSequencesCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the sequence"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Sequence"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/sequences/{sequenceId}:
+    get:
+      tags:
+      - "sequences"
+      summary: "Admins: Find sequence by ID"
+      description: "Get a specific sequence info"
+      operationId: "peSequencesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "sequenceId"
+        in: "path"
+        description: "ID of the sequence to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Sequence"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "sequences"
+      summary: "Admins: Updates a sequence with form data"
+      description: "Change the data of a sequence"
+      operationId: "peSequencesUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "sequenceId"
+        in: "path"
+        description: "ID of sequence to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the sequence"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Sequence"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "sequences"
+      summary: "Admins: Deletes a sequence"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peSequencesDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "sequenceId"
+        in: "path"
+        description: "ID of sequence to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Sequence"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/series_tasks:
+    get:
+      tags:
+      - "series_tasks"
+      summary: "Admins: Get all series_tasks"
+      description: "Returns results for all the series_tasks in the system"
+      operationId: "peSeriesTasksIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "task_type"
+        in: "query"
+        description: "Model name of the task that you're looking for. Example: `Assignment`"
+        required: false
+        type: "string"
+      - name: "task_id"
+        in: "query"
+        description: "ID of the task that the task_type refers to. Example: `123`"
+        required: false
+        type: "string"
+      - name: "series"
+        in: "query"
+        description: "Dash-delimited list of series ids to include. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `series-task`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SeriesTaskResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "series_tasks"
+      summary: "Admins: Creates a series_tasks with form data"
+      description: "To add a new series_task"
+      operationId: "peSeriesTasksCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `series-task`"
+        required: false
+        type: "string"
+      - name: "series_id"
+        in: "formData"
+        description: "ID of the series."
+        required: false
+        type: "integer"
+      - name: "task_type"
+        in: "formData"
+        description: "The model name of the resource for the task, like `Assignment`"
+        required: false
+        type: "integer"
+      - name: "task_id"
+        in: "formData"
+        description: "ID of the resource that the task_type refers to."
+        required: false
+        type: "integer"
+      - name: "position"
+        in: "formData"
+        description: "The position of this Task in the Series."
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SeriesTask"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/series_tasks/{seriesTaskId}:
+    get:
+      tags:
+      - "series_tasks"
+      summary: "Admins: Find series_tasks by ID"
+      description: "Get a specific series_task info"
+      operationId: "peSeriesTasksShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "seriesTaskId"
+        in: "path"
+        description: "ID of the series_task to show"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `series-task`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SeriesTask"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "series_tasks"
+      summary: "Admins: Updates a series_task with form data"
+      description: "Change the data of a series_task"
+      operationId: "peSeriesTasksUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "seriesTaskId"
+        in: "path"
+        description: "ID of series_task to update"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `series-task`"
+        required: false
+        type: "string"
+      - name: "series_id"
+        in: "formData"
+        description: "ID of the series."
+        required: false
+        type: "integer"
+      - name: "task_type"
+        in: "formData"
+        description: "The model name of the resource for the task, like `Assignment`"
+        required: false
+        type: "integer"
+      - name: "task_id"
+        in: "formData"
+        description: "ID of the resource that the task_type refers to."
+        required: false
+        type: "integer"
+      - name: "position"
+        in: "formData"
+        description: "The position of this Task in the Series."
+        required: false
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SeriesTask"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "series_tasks"
+      summary: "Admins: Deletes a series_task"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peSeriesTasksDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "seriesTaskId"
+        in: "path"
+        description: "ID of series_task to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SeriesTask"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/series:
+    get:
+      tags:
+      - "series"
+      summary: "Admins: Get all series"
+      description: "Returns results for all the series in the system"
+      operationId: "peSeriesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "term"
+        in: "query"
+        description: "Search terms - search based on name"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SeriesResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "series"
+      summary: "Admins: Creates a series with form data"
+      description: "To add a new series"
+      operationId: "peSeriesCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the series"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Series"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/series/{seriesId}:
+    get:
+      tags:
+      - "series"
+      summary: "Admins: Find series by ID"
+      description: "Get a specific series info"
+      operationId: "peSeriesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "seriesId"
+        in: "path"
+        description: "ID of the series to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Series"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "series"
+      summary: "Admins: Updates a series with form data"
+      description: "Change the data of a series"
+      operationId: "peSeriesUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "seriesId"
+        in: "path"
+        description: "ID of series to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the series"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Series"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "series"
+      summary: "Admins: Deletes a series"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peSeriesDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "seriesId"
+        in: "path"
+        description: "ID of series to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Series"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/series/{seriesId}/clone:
+    post:
+      tags:
+      - "series"
+      summary: "Admins: Clone series by ID"
+      description: "Clones a specific series info. Returns the new cloned series"
+      operationId: "peSeriesClone"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "seriesId"
+        in: "path"
+        description: "ID of the series to clone"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Series"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+  /pe/tag_groups:
+    get:
+      tags:
+      - "tag_groups"
+      summary: "Admins: Get all tag groups"
+      description: "Returns results for all the tag groups in the system"
+      operationId: "peTagGroupsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroupResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "tag_groups"
+      summary: "Admins: Creates a tag group with form data"
+      description: "To add a new group of tags"
+      operationId: "peTagGroupsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the tag group"
+        required: false
+        type: "string"
+      - name: "brand_ident"
+        in: "formData"
+        description: "Optional. The brand code for this, like `tbm`"
+        required: false
+        type: "string"
+      - name: "position"
+        in: "formData"
+        description: "Where should this tag group be placed in the Admin? If this is blank or missing, it will be placed at the end of the list."
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroup"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/tag_groups/{tagGroupId}:
+    get:
+      tags:
+      - "tag_groups"
+      summary: "Admins: Find tag group by ID"
+      description: "Get a specific tag group's info"
+      operationId: "peTagGroupsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagGroupId"
+        in: "path"
+        description: "ID of the tag group to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroup"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "tag_groups"
+      summary: "Admins: Updates a tag group with form data"
+      description: "Change the name or position of a tag group"
+      operationId: "peTagGroupsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagGroupId"
+        in: "path"
+        description: "ID of tag group to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the tag group"
+        required: false
+        type: "string"
+      - name: "brand_ident"
+        in: "formData"
+        description: "Optional. The brand code for this, like `tbm`"
+        required: false
+        type: "string"
+      - name: "position"
+        in: "formData"
+        description: "Where should this tag group be placed in the Admin? If this is blank or missing, it will be placed at the end of the list."
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroup"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "tag_groups"
+      summary: "Admins: Deletes a tag group"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peTagGroupsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagGroupId"
+        in: "path"
+        description: "ID of tag group to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroup"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/tags:
+    get:
+      tags:
+      - "tags"
+      summary: "Admins: Get all tags"
+      description: "Returns results for all the tags in the system"
+      operationId: "peTagsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tag_groups"
+        in: "query"
+        description: "Dash-delimited list of tag group ids to include, as long as the user has read rights to the tag group. If this is blank, then it will include all of the tag groups that the user has read rights to. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "tags"
+      summary: "Admins: Creates a tag with form data"
+      description: "To add a new tags"
+      operationId: "peTagsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the tag"
+        required: false
+        type: "string"
+      - name: "tag_group_id"
+        in: "formData"
+        description: "Tag group that this tag belongs to"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Tag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/tags/{tagId}:
+    get:
+      tags:
+      - "tags"
+      summary: "Admins: Find tag by ID"
+      description: "Get a specific tag's info"
+      operationId: "peTagsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagId"
+        in: "path"
+        description: "ID of the tag to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Tag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "tags"
+      summary: "Admins: Updates a tag with form data"
+      description: "Change the name or position of a tag"
+      operationId: "peTagsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagId"
+        in: "path"
+        description: "ID of tag to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the tag"
+        required: false
+        type: "string"
+      - name: "tag_group_id"
+        in: "formData"
+        description: "Tag group that this tag belongs to"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Tag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "tags"
+      summary: "Admins: Deletes a tag"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peTagsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagId"
+        in: "path"
+        description: "ID of tag to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Tag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/translations:
+    get:
+      tags:
+      - "translations"
+      summary: "Admins: Get all translations"
+      description: "Returns results for all the translations in the system"
+      operationId: "peTranslationsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "resource_type"
+        in: "query"
+        description: "Model name of the resource that you're looking for. Example: `Assignment`"
+        required: false
+        type: "string"
+      - name: "resource_id"
+        in: "query"
+        description: "ID of the resource that the resource_type refers to. Example: `123`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TranslationResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "translations"
+      summary: "Admins: Creates a translation with form data"
+      description: "To add a new translation"
+      operationId: "peTranslationsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "resource_type"
+        in: "formData"
+        description: "Model name of the resource that this belongs to. Example: `Assignment`"
+        required: false
+        type: "string"
+      - name: "resource_id"
+        in: "formData"
+        description: "ID of the resource that the resource_type refers to. Example: `123`"
+        required: false
+        type: "integer"
+      - name: "name"
+        in: "formData"
+        description: "The translated name for the resource."
+        required: false
+        type: "string"
+      - name: "description"
+        in: "formData"
+        description: "The translated description for the resource."
+        required: false
+        type: "string"
+      - name: "lang_code"
+        in: "formData"
+        description: "The language code. Will be converted to lowercase. Example: `en`"
+        required: false
+        type: "string"
+      - name: "lang_terr"
+        in: "formData"
+        description: "The territory code. Will be converted to uppercase. Example: `US`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Translation"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /pe/translations/{translationId}:
+    get:
+      tags:
+      - "translations"
+      summary: "Admins: Find translation by ID"
+      description: "Get a specific translation info"
+      operationId: "peTranslationsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "translationId"
+        in: "path"
+        description: "ID of the translation to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Translation"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "translations"
+      summary: "Admins: Updates a translation with form data"
+      description: "Change the data of a translation"
+      operationId: "peTranslationsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "translationId"
+        in: "path"
+        description: "ID of translation to update"
+        required: true
+        type: "string"
+      - name: "resource_type"
+        in: "formData"
+        description: "Model name of the resource that this belongs to. Example: `Assignment`"
+        required: false
+        type: "string"
+      - name: "resource_id"
+        in: "formData"
+        description: "ID of the resource that the resource_type refers to. Example: `123`"
+        required: false
+        type: "integer"
+      - name: "name"
+        in: "formData"
+        description: "The translated name for the resource."
+        required: false
+        type: "string"
+      - name: "description"
+        in: "formData"
+        description: "The translated description for the resource."
+        required: false
+        type: "string"
+      - name: "lang_code"
+        in: "formData"
+        description: "The language code. Will be converted to lowercase. Example: `en`"
+        required: false
+        type: "string"
+      - name: "lang_terr"
+        in: "formData"
+        description: "The territory code. Will be converted to uppercase. Example: `US`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Translation"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - "translations"
+      summary: "Admins: Deletes a translation"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "peTranslationsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "translationId"
+        in: "path"
+        description: "ID of translation to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Translation"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+securityDefinitions:
+  jwt:
+    type: "apiKey"
+    name: "jwt"
+    in: "header"
+definitions:
+  ActivityResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Activity"
+  Activity:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Activity"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      affected_type:
+        type: "string"
+      affected_id:
+        type: "integer"
+        format: "int32"
+      action:
+        type: "string"
+      user_id:
+        type: "integer"
+        format: "int32"
+      obj_json:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+  Asset:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Asset"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      filename:
+        type: "string"
+      base_filename:
+        type: "string"
+      file_size:
+        type: "integer"
+        format: "int32"
+      file_type:
+        type: "string"
+      asset_type:
+        type: "string"
+      slot:
+        type: "string"
+      assetable:
+        type: "string"
+      assetable_id:
+        type: "integer"
+        format: "int32"
+      media:
+        type: "string"
+      uuid:
+        type: "string"
+  AssignmentConfig:
+    type: "object"
+    properties:
+      options:
+        type: "array"
+        items:
+          type: "object"
+  AssignmentResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Assignment"
+  Assignment:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Assignment"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      description:
+        type: "string"
+      category_id:
+        type: "integer"
+        format: "int32"
+      poster_id:
+        type: "integer"
+        format: "int32"
+      poster_url:
+        type: "string"
+      action:
+        type: "string"
+      action_obj:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+      tags:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagSimple"
+      tag_groups:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagGroupSimple"
+  BrandResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Brand"
+  Brand:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Brand"
+      id:
+        type: "integer"
+        format: "int32"
+      ident:
+        type: "string"
+      name:
+        type: "string"
+      is_enabled:
+        type: "boolean"
+        default: false
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  CategoryResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Category"
+  Category:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Category"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  ContentTagResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/ContentTag"
+  ContentTag:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "ContentTag"
+      id:
+        type: "integer"
+        format: "int32"
+      content_type:
+        type: "string"
+      content_id:
+        type: "integer"
+        format: "int32"
+      tag_id:
+        type: "integer"
+        format: "int32"
+  MatrixResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Matrix"
+  Matrix:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Matrix"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      rules_obj:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  MemberResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Member"
+  Member:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Member"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      brand_id:
+        type: "integer"
+        format: "int32"
+      brand_ident:
+        type: "string"
+      brand_name:
+        type: "string"
+      brand_user_id:
+        type: "string"
+      email:
+        type: "string"
+      first_name:
+        type: "string"
+      last_name:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  PhaseSequenceResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/PhaseSequence"
+  PhaseSequence:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "PhaseSequence"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      phase_id:
+        type: "integer"
+        format: "int32"
+      sequence_id:
+        type: "integer"
+        format: "int32"
+      week:
+        type: "integer"
+        format: "int32"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  PhaseResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Phase"
+  Phase:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Phase"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      sequences:
+        type: "integer"
+        format: "int32"
+      programs:
+        type: "integer"
+        format: "int32"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  ProgramBrandResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/ProgramBrand"
+  ProgramBrand:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "ProgramBrand"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      program_id:
+        type: "integer"
+        format: "int32"
+      brand_id:
+        type: "integer"
+        format: "int32"
+      brand_ident:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  ProgramPhaseResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/ProgramPhase"
+  ProgramPhase:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "ProgramPhase"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      program_id:
+        type: "integer"
+        format: "int32"
+      phase_id:
+        type: "integer"
+        format: "int32"
+      position:
+        type: "integer"
+        format: "int32"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  ProgramResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Program"
+  Program:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Program"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      description:
+        type: "string"
+      is_published:
+        type: "boolean"
+        default: false
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+      tags:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagSimple"
+      tag_groups:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagGroupSimple"
+  SequenceResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Sequence"
+  Sequence:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Sequence"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+      tags:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagSimple"
+      tag_groups:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagGroupSimple"
+  SequenceTaskResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/SequenceTask"
+  SequenceTask:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "SequenceTask"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      sequence_id:
+        type: "integer"
+        format: "int32"
+      task_type:
+        type: "string"
+      task_id:
+        type: "integer"
+        format: "int32"
+      day:
+        type: "integer"
+        format: "int32"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  SeriesResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Series"
+  Series:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Series"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  SeriesTaskResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/SeriesTask"
+  SeriesTask:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "SeriesTask"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      series_id:
+        type: "integer"
+        format: "int32"
+      task_type:
+        type: "string"
+      task_id:
+        type: "integer"
+        format: "int32"
+      position:
+        type: "integer"
+        format: "int32"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  TagResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Tag"
+  Tag:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Tag"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      tag_group_id:
+        type: "integer"
+        format: "int32"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  TagSimple:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+  TagGroupResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagGroup"
+  TagGroup:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Tag"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      position:
+        type: "integer"
+        format: "int32"
+      brand_id:
+        type: "integer"
+        format: "int32"
+      brand_ident:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+      tags:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagSimple"
+  TagGroupSimple:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      tags:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagSimple"
+  TranslationResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Translation"
+  Translation:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Translation"
+      id:
+        type: "integer"
+        format: "int32"
+      resource_type:
+        type: "string"
+      resource_id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      description:
+        type: "string"
+      lang_code:
+        type: "string"
+      lang_terr:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"

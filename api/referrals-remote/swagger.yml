@@ -1,0 +1,94 @@
+swagger: "2.0"
+info:
+  description: "These requests will be used by the Referral Service to validate that the user exists, and validate the credit balance for the user."
+  version: "1.0.0"
+  title: "Stronger U Shop User Validation"
+  contact:
+    email: "micah@muuvlabs.com"
+host: "shop.strongeru.com"
+basePath: "/api"
+tags:
+- name: "validate"
+  description: "Requests to validate information"
+schemes:
+- "https"
+paths:
+  /validate_user:
+    get:
+      tags:
+      - "validate"
+      summary: "Validate a user"
+      description: "Make sure the user exists and is the type of user we expect."
+      operationId: "validateUser"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "email"
+        in: "query"
+        description: "The URI-encoded email for the user in the Wordpress database."
+        required: true
+        type: "string"
+      - name: "user_id"
+        in: "query"
+        description: "The user id in the external system that we want to validate."
+        required: true
+        type: "string"
+      - name: "credit_action"
+        in: "query"
+        description: "Is this a coach or a member? The `credit_action` setting of a Program will decide which type of user it applies to, so we have to confirm that."
+        required: true
+        type: "string"
+        enum:
+        - "su_coach"
+        - "su_member"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ValidResponse"
+        "400":
+          description: "Invalid input"
+  /validate_purchase:
+    get:
+      tags:
+      - "validate"
+      summary: "Verify Purchase in Wordpress"
+      description: "Make sure that a purchase took place."
+      operationId: "validatePurchase"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "email"
+        in: "query"
+        description: "The URI-encoded email for the user in the Wordpress database."
+        required: true
+        type: "string"
+      - name: "user_id"
+        in: "query"
+        description: "The user id in the external system that we want to validate."
+        required: true
+        type: "string"
+      - name: "order_id"
+        in: "query"
+        description: "The order id in the external system that we want to validate."
+        required: true
+        type: "string"
+      - name: "credit_applied"
+        in: "query"
+        description: "The amount of credit that was used in the purchase."
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ValidResponse"
+        "400":
+          description: "Invalid input"
+definitions:
+  ValidResponse:
+    type: "object"
+    properties:
+      is_valid:
+        type: "boolean"
+        default: false

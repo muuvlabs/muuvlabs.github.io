@@ -1,0 +1,1667 @@
+swagger: "2.0"
+info:
+  description: "This API was created for SEB, as part of a referral system for members, specifically for Stronger U to start."
+  version: "1.0.0"
+  title: "SEB Referrals API"
+  contact:
+    email: "micah@muuvlabs.com"
+host: "referrals.sebrands.com"
+basePath: "/"
+tags:
+- name: "redirect"
+  description: "Public: Server-generated HTML page for redirecting"
+- name: "credit_used"
+  description: "Public: Sent from External system to let us know when credit is used"
+- name: "scripts"
+  description: "Public: Javascript to run on various pages for a specific program"
+- name: "share_code"
+  description: "Public: Information exchange between Node and Wordpress"
+- name: "status"
+  description: "Public: Current user's balance and share code"
+- name: "track"
+  description: "Public: Web beacon for tracking analytics events and conversions"
+- name: "chart"
+  description: "Admins: Chart formatted data for views and conversions"
+- name: "brands"
+  description: "Admins: Settings for each brand (Stronger U, The Bar Method)"
+- name: "conversions"
+  description: "Admins: Info about each conversion from a referral"
+- name: "members"
+  description: "Admins: Info and settings about the members"
+- name: "programs"
+  description: "Admins: Settings for each program"
+- name: "track_events"
+  description: "Admins: Tracking info about views or conversions from referral links"
+schemes:
+- "https"
+paths:
+  /l/{shareCode}:
+    get:
+      tags:
+      - "redirect"
+      summary: "Redirect page for a program"
+      description: "This request relies on the program's redirect_url to be set to go to this server. It will look up the share_code for the member, and make sure that it is a valid code. It will fill in the og: meta tags with the correct info, and redirect to the landing page given in the program's settings."
+      operationId: "referralsRedirectPage"
+      produces:
+      - "text/html"
+      parameters:
+      - name: "shareCode"
+        in: "path"
+        description: "A specific member's share code"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+  /referrals/credit_used:
+    post:
+      tags:
+      - "credit_used"
+      summary: "Update credit"
+      description: "Whenever a checkout happens in the Wordpress site (or other remote system) this will be sent from that system to us. We'll then validate the purchase with the remote system, to make sure it is real."
+      operationId: "referralsCreditUsed"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brand_ident"
+        in: "formData"
+        description: "The brand code for this purchase, like `su`"
+        required: true
+        type: "string"
+      - name: "email"
+        in: "formData"
+        description: "The URI-encoded email for the user in the external system."
+        required: true
+        type: "string"
+      - name: "user_id"
+        in: "formData"
+        description: "The user id in the external system."
+        required: true
+        type: "string"
+      - name: "credit_applied"
+        in: "formData"
+        description: "The amount of credit that was applied to the purchase."
+        required: true
+        type: "string"
+      - name: "order_id"
+        in: "formData"
+        description: "The order id in the external system for this purchase."
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ReferralsStatus"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+  /referrals/scripts/landing.js:
+    get:
+      tags:
+      - "scripts"
+      summary: "Boot script"
+      description: "This is a loader script that checks for share code to load the next script. Nothing dynamic in this, but serving up from server code anyway."
+      operationId: "referralsScriptsLandingBoot"
+      produces:
+      - "text/javascript"
+      responses:
+        "200":
+          description: "successful operation"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+  /referrals/scripts/landing/{shareCode}.js:
+    get:
+      tags:
+      - "scripts"
+      summary: "A program's landing page script"
+      description: "We may have a stored chunk of Javascript to run on the landing page, coming from our database. If there is no script, returns an empty Javascript file with just a comment."
+      operationId: "referralsScriptsLanding"
+      produces:
+      - "text/javascript"
+      parameters:
+      - name: "shareCode"
+        in: "path"
+        description: "A specific member's share code"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+  /referrals/scripts/share/{shareCode}.js:
+    get:
+      tags:
+      - "scripts"
+      summary: "A program's sharing dialog script"
+      description: "Server-generated javascript that uses the sharing information to be used in an external page."
+      operationId: "referralsScriptsSharing"
+      produces:
+      - "text/javascript"
+      parameters:
+      - name: "shareCode"
+        in: "path"
+        description: "A specific member's share code"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+  /referrals/share_code/{shareCode}:
+    get:
+      tags:
+      - "share_code"
+      summary: "Get share code credit, discount, and user id"
+      description: "This is only used by Wordpress. This requires valid fields to be sent. Wordpress will use this information to apply the discount when someone is checking out, as well as applying the credit to the referring user."
+      operationId: "referralsShareCodeGet"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "shareCode"
+        in: "path"
+        description: "For Wordpress site to look up info about a share_code"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ShareCodeInfo"
+        "400":
+          description: "Invalid input"
+  /referrals/status:
+    get:
+      tags:
+      - "status"
+      summary: "Get my balance and referral code"
+      description: "This requires valid fields to be sent. It will show the user's current balance and share code."
+      operationId: "referralsStatus"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brand"
+        in: "query"
+        description: "String identifier for the Brand/Company related to this user. Example: `su`"
+        required: true
+        type: "string"
+      - name: "email"
+        in: "query"
+        description: "The email address of the user in the given brand's database."
+        required: true
+        type: "string"
+      - name: "user_id"
+        in: "query"
+        description: "The user id of the user in the given brand's database."
+        required: true
+        type: "string"
+      - name: "credit_action"
+        in: "query"
+        description: "The type of user this is, one of `su_member` or `su_coach` to start. If not given, will use the default Program setting for the Brand."
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ReferralsStatus"
+        "400":
+          description: "Invalid input"
+  /referrals/track.gif:
+    get:
+      tags:
+      - "track"
+      summary: "Track an analytics event"
+      description: "This is sent as a blank 1 pixel gif to maximize support. Allows for cross-domain requests, works without JS, and doesn't care about the response."
+      operationId: "referralsTrackEvent"
+      produces:
+      - "image/gif"
+      parameters:
+      - name: "url"
+        in: "query"
+        description: "The full URL of the page"
+        required: false
+        type: "string"
+      - name: "action"
+        in: "query"
+        description: "The analytics event, like 'redirect', 'view', or 'conversion'"
+        required: false
+        type: "string"
+      - name: "uuid"
+        in: "query"
+        description: "Uuid that was generated clientside, for tracking a session"
+        required: false
+        type: "string"
+      - name: "referrer"
+        in: "query"
+        description: "The referring page"
+        required: false
+        type: "string"
+      - name: "share_code"
+        in: "query"
+        description: "The share code related to this event"
+        required: false
+        type: "string"
+      - name: "user_id"
+        in: "query"
+        description: "The id of the user that did the conversion. The new user for conversions, or the existing user if using a credit."
+        required: false
+        type: "string"
+      - name: "order_id"
+        in: "query"
+        description: "The order id in the remote system for the conversion."
+        required: false
+        type: "string"
+      - name: "email"
+        in: "query"
+        description: "The email of the user that did the conversion."
+        required: false
+        type: "string"
+      responses:
+        "301":
+          description: "redirect to pixel gif"
+  /referrals/chart:
+    get:
+      tags:
+      - "chart"
+      summary: "Admins: Gather counts for charting views and conversions"
+      description: "This will only include the counts, over a given time series. Try to set the `start_int` and `stop_int` for full days in the member's timezone."
+      operationId: "referralsChart"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "actions"
+        in: "query"
+        description: "Dash-delimited list of action event types to include, like 'redirect', 'view', or 'conversion'. If this is blank, then it will include all of the actions. Example: `view-conversion`"
+        required: false
+        type: "string"
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the member has read rights to the brand. If this is blank, then it will include all of the brands that the member has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "programs"
+        in: "query"
+        description: "Dash-delimited list of program ids to include, as long as the member has read rights to the program. If this is blank, then it will include all of the programs that the user has read rights to. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "member_id"
+        in: "query"
+        description: "The Referral System's member id for this person, as long as the viewer has read rights to the brand and program the member is in."
+        required: false
+        type: "string"
+      - name: "group_by"
+        in: "query"
+        description: "Groups the results into day, hour, or minute. Default is `day`."
+        required: false
+        type: "string"
+        enum:
+        - "day"
+        - "hour"
+        - "minute"
+      - name: "timezone"
+        in: "query"
+        description: "Optional string timezone to label the days. If not given, the system will assume the start_int is the beginning of a day, and label accordingly. Example: `America/Chicago`"
+        required: false
+        type: "string"
+      - name: "start_int"
+        in: "query"
+        description: "Milliseconds since epoch for when to start the result set. Includes results on the timestamp."
+        required: false
+        type: "string"
+      - name: "stop_int"
+        in: "query"
+        description: "Milliseconds since epoch for when to stop the result set. Excludes results on the timestamp."
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ChartData"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+  /referrals/brands:
+    get:
+      tags:
+      - "brands"
+      summary: "Admins: Get all brands"
+      description: "Returns results for all the brands in the system"
+      operationId: "referralsBrandsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      - name: "enabled"
+        in: "query"
+        description: "For viewing the brands that are enabled or not, or all brands. Default is to show all brands."
+        required: false
+        type: "string"
+        enum:
+        - "all"
+        - "1"
+        - "0"
+        default: "all"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/BrandResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "brands"
+      summary: "Admins: Creates a brand with form data"
+      description: "This won't be used much, just adding a new Brand"
+      operationId: "referralsBrandsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "ident"
+        in: "formData"
+        description: "Short code of the brand. Should ideally be one of: `su`, `tbm`, `af` though we can add more brands also."
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Full name of the brand, like `Stronger U`"
+        required: false
+        type: "string"
+      - name: "is_enabled"
+        in: "formData"
+        description: "Is this brand using the referral service?"
+        required: false
+        type: "string"
+      - name: "subdomain"
+        in: "formData"
+        description: "The subdomain to use for the referral service, like `referrals.strongeru.com`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Brand"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /referrals/brands/{brandIdent}:
+    get:
+      tags:
+      - "brands"
+      summary: "Admins: Find brand by short code string"
+      description: "We're using the code instead of the integer as the primary identifier. So using 'su', 'tbm', or 'af'"
+      operationId: "referralsBrandsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brandIdent"
+        in: "path"
+        description: "Short code of brand to return"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Brand"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "brands"
+      summary: "Admins: Updates a brand with form data"
+      description: "This is used for referral program defaults for this brand."
+      operationId: "referralsBrandsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brandIdent"
+        in: "path"
+        description: "Short code of brand to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Full name of the brand, like `Stronger U`"
+        required: false
+        type: "string"
+      - name: "is_enabled"
+        in: "formData"
+        description: "Is this brand using the referral service?"
+        required: false
+        type: "boolean"
+      - name: "subdomain"
+        in: "formData"
+        description: "The subdomain to use for the referral service, like `referrals.strongeru.com`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Brand"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /referrals/conversions:
+    get:
+      tags:
+      - "conversions"
+      summary: "Admins: Get all conversions"
+      description: "Returns results for all the conversions in the system"
+      operationId: "referralsConversionsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "programs"
+        in: "query"
+        description: "Dash-delimited list of program ids to include, as long as the user has read rights to the program. If this is blank, then it will include all of the programs that the user has read rights to. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "referring_member_id"
+        in: "query"
+        description: "The Referral System's member id for the person that shared the link."
+        required: false
+        type: "string"
+      - name: "member_id"
+        in: "query"
+        description: "The Referral System's member id for the new user that was created with this conversion."
+        required: false
+        type: "string"
+      - name: "status"
+        in: "query"
+        description: "Dash-delimited list of statuses to include. Default is to show all. Possible values: 'pending', 'approved', 'denied'.  Example: `pending-approved`"
+        required: false
+        type: "string"
+      - name: "start_int"
+        in: "query"
+        description: "Milliseconds since epoch for when to start the result set. Includes results on the timestamp."
+        required: false
+        type: "string"
+      - name: "stop_int"
+        in: "query"
+        description: "Milliseconds since epoch for when to stop the result set. Excludes results on the timestamp."
+        required: false
+        type: "string"
+      - name: "sort"
+        in: "query"
+        description: "Sort by the most recent, or the oldest first. Default is the most recent first."
+        required: false
+        type: "string"
+        enum:
+        - "recent"
+        - "oldest"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ConversionResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+  /referrals/conversions/{conversionId}:
+    get:
+      tags:
+      - "conversions"
+      summary: "Admins: Find conversion by ID"
+      description: "Get a specific conversion's info"
+      operationId: "referralsConversionsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "conversionId"
+        in: "path"
+        description: "ID of conversion to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Conversion"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "conversions"
+      summary: "Admins: Updates a conversion with form data"
+      description: "Mostly just to edit the status of a conversion - is it approved or denied?"
+      operationId: "referralsConversionsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "conversionId"
+        in: "path"
+        description: "ID of conversion to update"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "status"
+        in: "formData"
+        description: "Should this conversion be approved? Starts as `pending`, unless the Program's settings has `is_auto_approved` as true."
+        required: true
+        type: "string"
+        enum:
+        - "pending"
+        - "approved"
+        - "denied"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Conversion"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /referrals/members:
+    get:
+      tags:
+      - "members"
+      summary: "Admins: Get all members"
+      description: "Returns results for all the members in the system"
+      operationId: "referralsMembersIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "programs"
+        in: "query"
+        description: "Dash-delimited list of program ids to include, as long as the user has read rights to the program. If this is blank, then it will include all of the programs that the user has read rights to. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "enabled"
+        in: "query"
+        description: "For viewing the members that are enabled or not, or all members. Default is to show all members."
+        required: false
+        type: "string"
+        enum:
+        - "all"
+        - "1"
+        - "0"
+        default: "all"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MemberResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+  /referrals/members/{memberId}:
+    get:
+      tags:
+      - "members"
+      summary: "Admins: Find member by ID"
+      description: "Get a specific member's info"
+      operationId: "referralsMembersShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "memberId"
+        in: "path"
+        description: "ID of member to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Member"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "members"
+      summary: "Admins: Updates a member with form data"
+      description: "Updating any available member data, like preventing referral credits."
+      operationId: "referralsMembersUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "memberId"
+        in: "path"
+        description: "ID of member to update"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "brand_ident"
+        in: "formData"
+        description: "The brand code for this user, like `su`"
+        required: false
+        type: "string"
+      - name: "brand_user_id"
+        in: "formData"
+        description: "Id of the user in the external system. String to support all formats, but will usually be an integer."
+        required: false
+        type: "string"
+      - name: "email"
+        in: "formData"
+        description: "Email of the user in the external system"
+        required: false
+        type: "string"
+      - name: "balance"
+        in: "formData"
+        description: "For display purposes only - the amount of referral credit the member has. The external system may have a different value, though."
+        required: false
+        type: "number"
+        format: "float"
+      - name: "program_id"
+        in: "formData"
+        description: "Foreign key to the programs table. Program the member is enrolled in."
+        required: false
+        type: "number"
+      - name: "share_code"
+        in: "formData"
+        description: "The referral code used in the URLs. Changing this will break any existing referral codes for the member."
+        required: false
+        type: "string"
+      - name: "is_enabled"
+        in: "formData"
+        description: "Is this brand using the referral service?"
+        required: false
+        type: "boolean"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Member"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /referrals/programs:
+    get:
+      tags:
+      - "programs"
+      summary: "Admins: Get all programs"
+      description: "Returns results for all the programs in the system"
+      operationId: "referralsProgramsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "enabled"
+        in: "query"
+        description: "For viewing the programs that are enabled or not, or all programs. Default is to show all programs."
+        required: false
+        type: "string"
+        enum:
+        - "all"
+        - "1"
+        - "0"
+        default: "all"
+      - name: "include_scripts"
+        in: "query"
+        description: "The Javascript blocks could be large, so by default we won't include them. Set this to 1 to include them."
+        required: false
+        type: "string"
+        enum:
+        - "0"
+        - "1"
+        default: "0"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ProgramResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+    post:
+      tags:
+      - "programs"
+      summary: "Admins: Creates a program with form data"
+      description: "This is used for referral program defaults for this brand."
+      operationId: "referralsProgramsCreate"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Unique identifier for program name, like `Members 25` or `Coaches 50`"
+        required: true
+        type: "string"
+      - name: "brand_ident"
+        in: "formData"
+        description: "Short code for brand"
+        required: true
+        type: "string"
+      - name: "redirect_url"
+        in: "formData"
+        description: "Where the referral link will go. The query string `r_code` will be appended. Also used in og:url tag without referral code"
+        required: true
+        type: "string"
+      - name: "validate_user_url"
+        in: "formData"
+        description: "When we are checking to make sure a user exists in the external system, we'll call this URL."
+        required: true
+        type: "string"
+      - name: "validate_purchase_url"
+        in: "formData"
+        description: "When we are checking to make sure a purchase happened in the external system, we'll call this URL."
+        required: true
+        type: "string"
+      - name: "credit_action"
+        in: "formData"
+        description: "What to do with the credit for the referring member? Should we give it when checking out, or pay it out directly? Requires custom logic for each brand. Possible values currently: `su_member` or `su_coach`"
+        required: true
+        type: "string"
+        enum:
+        - "su_member"
+        - "su_coach"
+      - name: "credit"
+        in: "formData"
+        description: "The credit that will be given to the referring member."
+        required: false
+        type: "number"
+        format: "float"
+      - name: "discount"
+        in: "formData"
+        description: "The discount that will be given to the new member while signing up."
+        required: false
+        type: "number"
+        format: "float"
+      - name: "landing_page_script"
+        in: "formData"
+        description: "Large block of Javascript to run on the landing page."
+        required: false
+        type: "string"
+      - name: "is_enabled"
+        in: "formData"
+        description: "Is this program enabled?"
+        required: false
+        type: "boolean"
+      - name: "is_auto_approved"
+        in: "formData"
+        description: "Do we automatically approve all conversions?"
+        required: false
+        type: "boolean"
+      - name: "is_brand_default"
+        in: "formData"
+        description: "When new users are found, which program should they go in?"
+        required: false
+        type: "boolean"
+      - name: "social_title"
+        in: "formData"
+        description: "Used in og:title meta tag"
+        required: false
+        type: "string"
+      - name: "social_description"
+        in: "formData"
+        description: "Used in og:description meta tag"
+        required: false
+        type: "string"
+      - name: "social_image"
+        in: "formData"
+        description: "File upload for an image. The server will store this in the assets table and set the reference to it in the `social_image_id` field."
+        required: false
+        type: "file"
+      - name: "social_image_id"
+        in: "formData"
+        description: "Foreign key to assets table. Used in og:image meta tag"
+        required: false
+        type: "number"
+      - name: "text_body"
+        in: "formData"
+        description: "The body to prefill in the text message."
+        required: false
+        type: "string"
+      - name: "twitter_body"
+        in: "formData"
+        description: "The body to prefill in the tweet."
+        required: false
+        type: "string"
+      - name: "facebook_app_id"
+        in: "formData"
+        description: "The brand’s Facebook app ID"
+        required: false
+        type: "number"
+      - name: "email_subject"
+        in: "formData"
+        description: "What to prefill in the email subject."
+        required: false
+        type: "string"
+      - name: "email_body"
+        in: "formData"
+        description: "What to prefill in the main message body."
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Program"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /referrals/programs/{programId}:
+    get:
+      tags:
+      - "programs"
+      summary: "Admins: Find program by ID"
+      description: "Get a specific program's info"
+      operationId: "referralsProgramsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programId"
+        in: "path"
+        description: "ID of program to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Program"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+    put:
+      tags:
+      - "programs"
+      summary: "Admins: Updates a program with form data"
+      description: "This is used for referral program defaults for this brand."
+      operationId: "referralsProgramsUpdate"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "programId"
+        in: "path"
+        description: "ID of program to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "name"
+        in: "formData"
+        description: "Unique identifier for program name, like `Members 25` or `Coaches 50`"
+        required: false
+        type: "string"
+      - name: "brand_ident"
+        in: "formData"
+        description: "Short code for brand"
+        required: false
+        type: "string"
+      - name: "redirect_url"
+        in: "formData"
+        description: "Where the referral link will go. The query string `r_code` will be appended. Also used in og:url tag without referral code"
+        required: false
+        type: "string"
+      - name: "validate_user_url"
+        in: "formData"
+        description: "When we are checking to make sure a user exists in the external system, we'll call this URL."
+        required: true
+        type: "string"
+      - name: "validate_purchase_url"
+        in: "formData"
+        description: "When we are checking to make sure a purchase happened in the external system, we'll call this URL."
+        required: true
+        type: "string"
+      - name: "credit_action"
+        in: "formData"
+        description: "What to do with the credit for the referring member? Should we give it when checking out, or pay it out directly? Requires custom logic for each brand. Possible values currently: `su_member` or `su_coach`"
+        required: true
+        type: "string"
+        enum:
+        - "su_member"
+        - "su_coach"
+      - name: "credit"
+        in: "formData"
+        description: "The credit that will be given to the referring member."
+        required: false
+        type: "number"
+        format: "float"
+      - name: "discount"
+        in: "formData"
+        description: "The discount that will be given to the new member while signing up."
+        required: false
+        type: "number"
+        format: "float"
+      - name: "landing_page_script"
+        in: "formData"
+        description: "Large block of Javascript to run on the landing page."
+        required: false
+        type: "string"
+      - name: "is_enabled"
+        in: "formData"
+        description: "Is this program enabled?"
+        required: false
+        type: "boolean"
+      - name: "is_auto_approved"
+        in: "formData"
+        description: "Do we automatically approve all conversions?"
+        required: false
+        type: "boolean"
+      - name: "is_brand_default"
+        in: "formData"
+        description: "When new users are found, which program should they go in?"
+        required: false
+        type: "boolean"
+      - name: "social_title"
+        in: "formData"
+        description: "Used in og:title meta tag"
+        required: false
+        type: "string"
+      - name: "social_description"
+        in: "formData"
+        description: "Used in og:description meta tag"
+        required: false
+        type: "string"
+      - name: "social_image"
+        in: "formData"
+        description: "File upload for an image. The server will store this in the assets table and set the reference to it in the `social_image_id` field."
+        required: false
+        type: "file"
+      - name: "social_image_id"
+        in: "formData"
+        description: "Foreign key to assets table. Used in og:image meta tag"
+        required: false
+        type: "number"
+      - name: "text_body"
+        in: "formData"
+        description: "The body to prefill in the text message."
+        required: false
+        type: "string"
+      - name: "twitter_body"
+        in: "formData"
+        description: "The body to prefill in the tweet."
+        required: false
+        type: "string"
+      - name: "facebook_app_id"
+        in: "formData"
+        description: "The brand’s Facebook app ID"
+        required: false
+        type: "number"
+      - name: "email_subject"
+        in: "formData"
+        description: "What to prefill in the email subject."
+        required: false
+        type: "string"
+      - name: "email_body"
+        in: "formData"
+        description: "What to prefill in the main message body."
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Program"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+      security:
+      - jwt: []
+  /referrals/track_events:
+    get:
+      tags:
+      - "track_events"
+      summary: "Admins: Get all track events"
+      description: "Returns results for all the track events in the system based on the query string params."
+      operationId: "referralsTrackEventsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "actions"
+        in: "query"
+        description: "Dash-delimited list of action event types to include, like 'redirect', 'view', or 'conversion'. If this is blank, then it will include all of the actions. Example: `view-conversion`"
+        required: false
+        type: "string"
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "programs"
+        in: "query"
+        description: "Dash-delimited list of program ids to include, as long as the user has read rights to the program. If this is blank, then it will include all of the programs that the user has read rights to. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "referring_member_id"
+        in: "query"
+        description: "The Referral System's member id for the person that shared the link."
+        required: false
+        type: "string"
+      - name: "member_id"
+        in: "query"
+        description: "The Referral System's member id for the new user that was created with this conversion."
+        required: false
+        type: "string"
+      - name: "uuid"
+        in: "query"
+        description: "Filter by a specific uuid"
+        required: false
+        type: "string"
+      - name: "start_int"
+        in: "query"
+        description: "Milliseconds since epoch for when to start the result set. Includes results on the timestamp."
+        required: false
+        type: "string"
+      - name: "stop_int"
+        in: "query"
+        description: "Milliseconds since epoch for when to stop the result set. Excludes results on the timestamp."
+        required: false
+        type: "string"
+      - name: "sort"
+        in: "query"
+        description: "Sort by the most recent, or the oldest first. Default is the most recent first."
+        required: false
+        type: "string"
+        enum:
+        - "recent"
+        - "oldest"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TrackEventResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+      security:
+      - jwt: []
+  /referrals/track_events/{trackEventId}:
+    get:
+      tags:
+      - "track_events"
+      summary: "Admins: Find track_event by ID"
+      description: "Get a specific track_event's info"
+      operationId: "referralsTrackEventShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "trackEventId"
+        in: "path"
+        description: "ID of track event to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TrackEvent"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+      security:
+      - jwt: []
+securityDefinitions:
+  jwt:
+    type: "apiKey"
+    name: "jwt"
+    in: "header"
+definitions:
+  ReferralsStatus:
+    type: "object"
+    properties:
+      brand:
+        type: "string"
+      email:
+        type: "string"
+      user_id:
+        type: "string"
+      balance:
+        type: "integer"
+        format: "int32"
+      share_code:
+        type: "string"
+      share_url:
+        type: "string"
+  ShareCodeInfo:
+    type: "object"
+    properties:
+      credit:
+        type: "integer"
+        format: "int32"
+      discount:
+        type: "integer"
+        format: "int32"
+      user_id:
+        type: "string"
+  ChartData:
+    type: "object"
+    properties:
+      results:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            views:
+              type: "integer"
+              format: "int32"
+            conversions:
+              type: "integer"
+              format: "int32"
+  BrandResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Brand"
+  Brand:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Brand"
+      id:
+        type: "integer"
+        format: "int32"
+      ident:
+        type: "string"
+      name:
+        type: "string"
+      is_enabled:
+        type: "boolean"
+        default: false
+      subdomain:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  ConversionResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Conversion"
+  Conversion:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Conversion"
+      id:
+        type: "integer"
+        format: "int32"
+      track_event_id:
+        type: "integer"
+        format: "int32"
+      referring_member_id:
+        type: "integer"
+        format: "int32"
+      member_id:
+        type: "integer"
+        format: "int32"
+      program_id:
+        type: "integer"
+        format: "int32"
+      brand_id:
+        type: "integer"
+        format: "int32"
+      brand_ident:
+        type: "string"
+      credit_action:
+        type: "string"
+        enum:
+        - "su_member"
+        - "su_coach"
+      credit:
+        type: "number"
+        format: "float"
+      discount:
+        type: "number"
+        format: "float"
+      share_code:
+        type: "string"
+      status:
+        type: "string"
+        enum:
+        - "pending"
+        - "approved"
+        - "denied"
+      is_validated:
+        type: "boolean"
+        default: false
+      is_credit_applied:
+        type: "boolean"
+        default: false
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+      referring_member:
+        $ref: "#/definitions/Member"
+      member:
+        $ref: "#/definitions/Member"
+      program:
+        $ref: "#/definitions/Program"
+      track_event:
+        $ref: "#/definitions/TrackEvent"
+  MemberResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Member"
+  Member:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Member"
+      id:
+        type: "integer"
+        format: "int32"
+      brand_id:
+        type: "integer"
+        format: "int32"
+      brand_ident:
+        type: "string"
+      brand_name:
+        type: "string"
+      brand_user_id:
+        type: "string"
+      uuid:
+        type: "string"
+      email:
+        type: "string"
+      balance:
+        type: "number"
+        format: "float"
+      program_id:
+        type: "integer"
+        format: "int32"
+      share_code:
+        type: "string"
+      share_url:
+        type: "string"
+      is_enabled:
+        type: "boolean"
+        default: false
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  ProgramResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Program"
+  Program:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Program"
+      id:
+        type: "integer"
+        format: "int32"
+      brand_id:
+        type: "integer"
+        format: "int32"
+      brand_ident:
+        type: "string"
+      name:
+        type: "string"
+      redirect_url:
+        type: "string"
+      validate_user_url:
+        type: "string"
+      validate_purchase_url:
+        type: "string"
+      credit_action:
+        type: "string"
+        enum:
+        - "su_member"
+        - "su_coach"
+      credit:
+        type: "number"
+        format: "float"
+      discount:
+        type: "number"
+        format: "float"
+      landing_page_script:
+        type: "string"
+      is_enabled:
+        type: "boolean"
+        default: false
+      is_auto_approved:
+        type: "boolean"
+        default: false
+      is_brand_default:
+        type: "boolean"
+        default: false
+      social_title:
+        type: "string"
+      social_description:
+        type: "string"
+      social_image_id:
+        type: "integer"
+        format: "int32"
+      social_image_url:
+        type: "string"
+      text_body:
+        type: "string"
+      twitter_body:
+        type: "string"
+      facebook_app_id:
+        type: "integer"
+        format: "int32"
+      email_subject:
+        type: "string"
+      email_body:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  TrackEventResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/TrackEvent"
+  TrackEvent:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "TrackEvent"
+      id:
+        type: "integer"
+        format: "int32"
+      uuid:
+        type: "string"
+      member_id:
+        type: "integer"
+        format: "int32"
+      program_id:
+        type: "integer"
+        format: "int32"
+      brand_id:
+        type: "integer"
+        format: "int32"
+      brand_ident:
+        type: "string"
+      brand_user_id:
+        type: "string"
+      url:
+        type: "string"
+      action:
+        type: "string"
+      share_code:
+        type: "string"
+      referring_member_id:
+        type: "integer"
+        format: "int32"
+      referrer:
+        type: "string"
+      ip_address:
+        type: "string"
+      user_agent:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      referring_member:
+        $ref: "#/definitions/Member"
+      member:
+        $ref: "#/definitions/Member"
+      program:
+        $ref: "#/definitions/Program"

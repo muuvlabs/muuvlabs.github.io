@@ -1,0 +1,75 @@
+swagger: "2.0"
+info:
+  description: "This will be used by the Video Hosting Service to fetch information about livestream events through Zoom."
+  version: "1.0.0"
+  title: "The Bar Method Live Events API"
+  contact:
+    email: "micah@muuvlabs.com"
+host: "barmethod.com"
+basePath: "/api"
+tags:
+- name: "events"
+  description: "Fetch info about an event using a Zoom ID"
+schemes:
+- "https"
+paths:
+  /live_events/{zoomId}:
+    get:
+      tags:
+      - "events"
+      summary: "Get Event from Zoom ID"
+      description: "When we are listening to the webhooks from Zoom, we'll know when a recording is ready, for uploading into VHS. But we'll need the metadata about that recording, and so we'll use the Zoom ID to determine that."
+      operationId: "liveEventsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "zoomId"
+        in: "path"
+        description: "ID in Zoom's API"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/LiveEvent"
+        "400":
+          description: "Invalid input"
+definitions:
+  LiveEvent:
+    type: "object"
+    properties:
+      post_id:
+        type: "integer"
+        format: "int32"
+      title:
+        type: "string"
+      who_its_for:
+        type: "string"
+      what_youll_gain:
+        type: "string"
+      level:
+        type: "string"
+      key_moves:
+        type: "array"
+        items:
+          type: "string"
+      focus_areas:
+        type: "array"
+        items:
+          type: "string"
+      equipment:
+        type: "array"
+        items:
+          type: "string"
+      start_int:
+        type: "integer"
+        format: "int32"
+      stop_int:
+        type: "integer"
+        format: "int32"
+      instructor_name:
+        type: "string"
+      instructor_id:
+        type: "string"
