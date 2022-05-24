@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
   description: "This API was created for SEB, as part of a Video Hosting Service, specifically for Bar Method to start."
   version: "1.0.0"
-  title: "SEB Video Hosting API"
+  title: "SEB Video Hosting Service API"
   contact:
     email: "micah@muuvlabs.com"
 host: "vhs.sebrands.com"
