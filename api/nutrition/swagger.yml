@@ -1,0 +1,427 @@
+swagger: "2.0"
+info:
+  description: "This Nutrition Tracker service handles a way for members to log the food that they are eating."
+  version: "1.0.0"
+  title: "SEB Nutrition Tracker API"
+  contact:
+    email: "micah@muuvlabs.com"
+host: "nutrition.sebrands.com"
+basePath: "/"
+tags:
+- name: "foods"
+  description: "Food database requests"
+- name: "members"
+  description: "Protected requests that show member information"
+schemes:
+- "https"
+paths:
+  /users/auth:
+    post:
+      tags:
+      - "auth"
+      summary: "Initiate auth process"
+      description: "This will only take an email address. If that email does not exist as a valid user, the system will not give any feedback about it. It will only return the success status. If the user does exist, the system will send them an email to login to the system, and also a code to enter."
+      operationId: "usersAuth"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "email"
+        in: "formData"
+        description: "The email address of the user. The system will send a login message to this email."
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Sent"
+  /users/verify:
+    post:
+      tags:
+      - "auth"
+      summary: "Verify an auth token"
+      description: ""
+      operationId: "usersVerify"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "auth_code"
+        in: "formData"
+        description: "The auth code that was sent to the email. Clicking on the link in the email will have the app send this same request."
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/User"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/AuthError"
+  /users/logout:
+    get:
+      tags:
+      - "auth"
+      summary: "Log out from user"
+      description: "This will log out the user, if they were logged in. It responds to both GET and POST."
+      operationId: "usersLogoutGet"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Bye"
+    post:
+      tags:
+      - "auth"
+      summary: "Log out from user"
+      description: "This will log out the user, if they were logged in. It responds to both GET and POST."
+      operationId: "usersLogoutPost"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Bye"
+  /users/config:
+    get:
+      tags:
+      - "users"
+      summary: "Admins: Config for options"
+      description: "Requires authentication. This config will give the client app the information about what checkbox options should be available to the currently logged-in user."
+      operationId: "usersConfig"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Config"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /users/me:
+    get:
+      tags:
+      - "users"
+      summary: "Admins: Who am I?"
+      description: "Get the currently logged-in user info."
+      operationId: "usersMe"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/User"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /users:
+    get:
+      tags:
+      - "users"
+      summary: "Admins: View all users"
+      description: "Requires authentication. This is the way to list all users, or do searches on them."
+      operationId: "usersIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "services"
+        in: "query"
+        description: "Dash-delimited list of service idents to include, as long as the user has read rights to the service. If this is blank, then it will include all of the services that the user has read rights to. Example: `pe-vhs`"
+        required: false
+        type: "string"
+      - name: "email"
+        in: "query"
+        description: "For searching by a specific email."
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/UserResults"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    post:
+      tags:
+      - "users"
+      summary: "Admins: Create a user with form data"
+      description: "For adding a new admin into the system."
+      operationId: "usersCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "first_name"
+        in: "formData"
+        description: "First name of the user"
+        required: false
+        type: "string"
+      - name: "last_name"
+        in: "formData"
+        description: "Last name of the user"
+        required: false
+        type: "string"
+      - name: "email"
+        in: "formData"
+        description: "Email of the user"
+        required: false
+        type: "string"
+      - name: "brand_permissions"
+        in: "formData"
+        description: "Dash-delimited list of brand idents to give the user access to, as long as the logged-in admin has rights to those brands. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "service_permissions"
+        in: "formData"
+        description: "Dash-delimited list of service idents to give the user access to, as long as the logged-in admin has rights to those services. Example: `pe-vhs`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/User"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /users/{userId}:
+    get:
+      tags:
+      - "users"
+      summary: "Admins: Find user by ID"
+      description: "Get a specific user's info"
+      operationId: "usersShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "userId"
+        in: "path"
+        description: "ID of user to return"
+        required: true
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/User"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    put:
+      tags:
+      - "users"
+      summary: "Admins: Updates a user with form data"
+      description: "Updating any available user data."
+      operationId: "usersUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "userId"
+        in: "path"
+        description: "ID of member to update"
+        required: true
+        type: "integer"
+      - name: "first_name"
+        in: "formData"
+        description: "First name of the user"
+        required: false
+        type: "string"
+      - name: "last_name"
+        in: "formData"
+        description: "Last name of the user"
+        required: false
+        type: "string"
+      - name: "email"
+        in: "formData"
+        description: "Email of the user"
+        required: false
+        type: "string"
+      - name: "brand_permissions"
+        in: "formData"
+        description: "Dash-delimited list of brand idents to give the user access to, as long as the logged-in admin has rights to those brands. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "service_permissions"
+        in: "formData"
+        description: "Dash-delimited list of service idents to give the user access to, as long as the logged-in admin has rights to those services. Example: `pe-vhs`"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/User"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    delete:
+      tags:
+      - "users"
+      summary: "Admins: Delete user by ID"
+      description: "Delete the record for this admin."
+      operationId: "usersDestroy"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "userId"
+        in: "path"
+        description: "ID of user to return"
+        required: true
+        type: "integer"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/User"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+definitions:
+  UserResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/User"
+  User:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "User"
+      id:
+        type: "integer"
+        format: "int32"
+      display_name:
+        type: "string"
+      first_name:
+        type: "string"
+      last_name:
+        type: "string"
+      email:
+        type: "string"
+      permissions:
+        type: "object"
+        properties:
+          brands:
+            type: "array"
+            items:
+              type: "string"
+          services:
+            type: "array"
+            items:
+              type: "string"
+      brand_permissions:
+        type: "string"
+      service_permissions:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  Config:
+    type: "object"
+    properties:
+      brands:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            ident:
+              type: "string"
+              default: "af"
+            name:
+              type: "string"
+              default: "Anytime Fitness"
+      services:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            ident:
+              type: "string"
+              default: "vhs"
+            name:
+              type: "string"
+              default: "Video Hosting"
+  Sent:
+    type: "object"
+    properties:
+      sent:
+        type: "boolean"
+        default: true
+  Bye:
+    type: "object"
+    properties:
+      message:
+        type: "string"
+        default: "Bye!"
+  AuthError:
+    type: "object"
+    properties:
+      message:
+        type: "string"
+        default: "Sorry, that code has expired or is incorrect. Please try again."
+  Unauthorized:
+    type: "object"
+    properties:
+      status_code:
+        type: "integer"
+        default: 401
+      type:
+        type: "string"
+        default: "unauthorized"
+      message:
+        type: "string"
+        default: "401 Unauthorized"
