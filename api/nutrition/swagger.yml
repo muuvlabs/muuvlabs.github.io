@@ -16,6 +16,8 @@ tags:
   description: "The meals for a specific user"
 - name: "meal_foods"
   description: "The specific food in a meal"
+- name: "search"
+  description: "For returning food search results"
 schemes:
 - "https"
 paths:
@@ -97,19 +99,19 @@ paths:
           type: "object"
           properties:
             calories_goal:
-              type: "integer"
+              type: "number"
             carbs_goal:
-              type: "integer"
+              type: "number"
             protein_goal:
-              type: "integer"
+              type: "number"
             fiber_goal:
-              type: "integer"
+              type: "number"
             fat_goal:
-              type: "integer"
+              type: "number"
             water_goal:
-              type: "integer"
+              type: "number"
             water:
-              type: "integer"
+              type: "number"
       - $ref: '#/parameters/xBrand'
       - $ref: '#/parameters/xJwt'
       - $ref: '#/parameters/xLanguage'
@@ -203,19 +205,19 @@ paths:
           type: "object"
           properties:
             calories_goal:
-              type: "integer"
+              type: "number"
             carbs_goal:
-              type: "integer"
+              type: "number"
             protein_goal:
-              type: "integer"
+              type: "number"
             fiber_goal:
-              type: "integer"
+              type: "number"
             fat_goal:
-              type: "integer"
+              type: "number"
             water_goal:
-              type: "integer"
+              type: "number"
             water:
-              type: "integer"
+              type: "number"
       - $ref: '#/parameters/xBrand'
       - $ref: '#/parameters/xJwt'
       - $ref: '#/parameters/xLanguage'
@@ -265,11 +267,11 @@ paths:
                   id:
                     type: "integer"
                   consumed_amount:
-                    type: "integer"
+                    type: "number"
                   consumed_unit:
                     type: "string"
                   consumed_grams:
-                    type: "integer"
+                    type: "number"
       - $ref: '#/parameters/xBrand'
       - $ref: '#/parameters/xJwt'
       - $ref: '#/parameters/xLanguage'
@@ -354,11 +356,11 @@ paths:
                   id:
                     type: "integer"
                   consumed_amount:
-                    type: "integer"
+                    type: "number"
                   consumed_unit:
                     type: "string"
                   consumed_grams:
-                    type: "integer"
+                    type: "number"
       - $ref: '#/parameters/xBrand'
       - $ref: '#/parameters/xJwt'
       - $ref: '#/parameters/xLanguage'
@@ -433,6 +435,74 @@ paths:
           description: "Unauthorized"
           schema:
             $ref: "#/definitions/Unauthorized"
+  /nutrition/search:
+    get:
+      tags:
+      - "search"
+      summary: "Returns foods, meals, or recipes"
+      description: "This is just for viewing the meal/food info. This may not be used at all, but including it just in case it is needed."
+      operationId: "searchIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tab"
+        in: "query"
+        description: "One of: `all`, `my_foods`, `my_meals`, `recipes`."
+        required: false
+        type: "string"
+        default: "all"
+      - name: "term"
+        in: "query"
+        description: "The search query that the user entered."
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/SearchResults"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/search/upc/{upcCode}:
+    get:
+      tags:
+      - "search"
+      summary: "Returns a food or 404"
+      description: "After scanning a barcode, you should have a numerical UPC code to use in the request. Returns a Food object if it's found, or a 404 if not."
+      operationId: "searchUpc"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "upcCode"
+        in: "path"
+        description: "Numerical UPC code"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Food"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+        "404":
+          description: "Not found"
 parameters:
   xBrand:
     in: "header"
@@ -465,6 +535,61 @@ parameters:
     type: "string"
     description: "The JWT token that was passed into the SDK when initializing"
 definitions:
+  Food:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Food"
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      servings:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            unit:
+              type: "string"
+            grams:
+              type: "number"
+      nutrition_unit:
+        type: "string"
+      calories:
+        type: "number"
+      fat:
+        type: "number"
+      fat_saturated:
+        type: "number"
+      cholesterol:
+        type: "number"
+      sodium:
+        type: "number"
+      carbs:
+        type: "number"
+      fiber:
+        type: "number"
+      sugar:
+        type: "number"
+      protein:
+        type: "number"
+      photo:
+        type: "string"
+      nix_food_name:
+        type: "string"
+      nix_brand_id:
+        type: "string"
+      nix_brand_name:
+        type: "string"
+      nix_item_id:
+        type: "string"
+      nix_item_name:
+        type: "string"
+      created_int:
+        type: "integer"
+      updated_int:
+        type: "integer"
   Meal:
     type: "object"
     properties:
@@ -482,23 +607,23 @@ definitions:
       meal_icon:
         type: "string"
       calories:
-        type: "integer"
+        type: "number"
       fat:
-        type: "integer"
+        type: "number"
       fat_saturated:
-        type: "integer"
+        type: "number"
       cholesterol:
-        type: "integer"
+        type: "number"
       sodium:
-        type: "integer"
+        type: "number"
       carbs:
-        type: "integer"
+        type: "number"
       fiber:
-        type: "integer"
+        type: "number"
       sugar:
-        type: "integer"
+        type: "number"
       protein:
-        type: "integer"
+        type: "number"
       created_int:
         type: "integer"
       updated_int:
@@ -520,31 +645,31 @@ definitions:
       name:
         type: "string"
       consumed_amount:
-        type: "integer"
+        type: "number"
       consumed_unit:
         type: "string"
       consumed_grams:
-        type: "integer"
+        type: "number"
       consumed_fl_oz:
-        type: "integer"
+        type: "number"
       calories:
-        type: "integer"
+        type: "number"
       fat:
-        type: "integer"
+        type: "number"
       fat_saturated:
-        type: "integer"
+        type: "number"
       cholesterol:
-        type: "integer"
+        type: "number"
       sodium:
-        type: "integer"
+        type: "number"
       carbs:
-        type: "integer"
+        type: "number"
       fiber:
-        type: "integer"
+        type: "number"
       sugar:
-        type: "integer"
+        type: "number"
       protein:
-        type: "integer"
+        type: "number"
       created_int:
         type: "integer"
       updated_int:
@@ -570,37 +695,37 @@ definitions:
       brand_alt_id:
         type: "string"
       calories_goal:
-        type: "integer"
+        type: "number"
       carbs_goal:
-        type: "integer"
+        type: "number"
       protein_goal:
-        type: "integer"
+        type: "number"
       fiber_goal:
-        type: "integer"
+        type: "number"
       fat_goal:
-        type: "integer"
+        type: "number"
       water_goal:
-        type: "integer"
+        type: "number"
       calories:
-        type: "integer"
+        type: "number"
       fat:
-        type: "integer"
+        type: "number"
       fat_saturated:
-        type: "integer"
+        type: "number"
       cholesterol:
-        type: "integer"
+        type: "number"
       sodium:
-        type: "integer"
+        type: "number"
       carbs:
-        type: "integer"
+        type: "number"
       fiber:
-        type: "integer"
+        type: "number"
       sugar:
-        type: "integer"
+        type: "number"
       protein:
-        type: "integer"
+        type: "number"
       water:
-        type: "integer"
+        type: "number"
       meals:
         type: "object"
         properties:
@@ -614,10 +739,8 @@ definitions:
             type: "object"
       created_int:
         type: "integer"
-        format: "int32"
       updated_int:
         type: "integer"
-        format: "int32"
   Config:
     type: "object"
     properties:
@@ -632,6 +755,24 @@ definitions:
         type: "object"
       translations:
         type: "object"
+  SearchResults:
+    type: "object"
+    properties:
+      tab:
+        type: "string"
+      term:
+        type: "string"
+      sections:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            results:
+              type: "array"
+              items:
+                type: "object"
   Unauthorized:
     type: "object"
     properties:
