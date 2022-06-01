@@ -8,362 +8,610 @@ info:
 host: "nutrition.sebrands.com"
 basePath: "/"
 tags:
-- name: "foods"
-  description: "Food database requests"
-- name: "members"
-  description: "Protected requests that show member information"
+- name: "configs"
+  description: "The app config and translations"
+- name: "days"
+  description: "Summary of days with meals"
+- name: "meals"
+  description: "The meals for a specific user"
+- name: "meal_foods"
+  description: "The specific food in a meal"
 schemes:
 - "https"
 paths:
-  /users/auth:
-    post:
+  /nutrition/configs/app:
+    get:
       tags:
-      - "auth"
-      summary: "Initiate auth process"
-      description: "This will only take an email address. If that email does not exist as a valid user, the system will not give any feedback about it. It will only return the success status. If the user does exist, the system will send them an email to login to the system, and also a code to enter."
-      operationId: "usersAuth"
-      consumes:
-      - "application/x-www-form-urlencoded"
+      - "configs"
+      summary: "App Config"
+      description: "This contains colors, fonts, and translations for a specific brand's app"
+      operationId: "configsApp"
       produces:
       - "application/json"
       parameters:
-      - name: "email"
-        in: "formData"
-        description: "The email address of the user. The system will send a login message to this email."
-        required: true
-        type: "string"
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Sent"
-  /users/verify:
-    post:
-      tags:
-      - "auth"
-      summary: "Verify an auth token"
-      description: ""
-      operationId: "usersVerify"
-      consumes:
-      - "application/x-www-form-urlencoded"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "auth_code"
-        in: "formData"
-        description: "The auth code that was sent to the email. Clicking on the link in the email will have the app send this same request."
-        required: true
-        type: "string"
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/User"
-        "403":
-          description: "Forbidden"
-          schema:
-            $ref: "#/definitions/AuthError"
-  /users/logout:
-    get:
-      tags:
-      - "auth"
-      summary: "Log out from user"
-      description: "This will log out the user, if they were logged in. It responds to both GET and POST."
-      operationId: "usersLogoutGet"
-      produces:
-      - "application/json"
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Bye"
-    post:
-      tags:
-      - "auth"
-      summary: "Log out from user"
-      description: "This will log out the user, if they were logged in. It responds to both GET and POST."
-      operationId: "usersLogoutPost"
-      produces:
-      - "application/json"
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Bye"
-  /users/config:
-    get:
-      tags:
-      - "users"
-      summary: "Admins: Config for options"
-      description: "Requires authentication. This config will give the client app the information about what checkbox options should be available to the currently logged-in user."
-      operationId: "usersConfig"
-      produces:
-      - "application/json"
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xClient'
       responses:
         "200":
           description: "successful operation"
           schema:
             $ref: "#/definitions/Config"
-        "401":
-          description: "Unauthorized"
-          schema:
-            $ref: "#/definitions/Unauthorized"
-  /users/me:
+  /nutrition/days/me/{date}:
     get:
       tags:
-      - "users"
-      summary: "Admins: Who am I?"
-      description: "Get the currently logged-in user info."
-      operationId: "usersMe"
-      produces:
-      - "application/json"
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/User"
-        "401":
-          description: "Unauthorized"
-          schema:
-            $ref: "#/definitions/Unauthorized"
-  /users:
-    get:
-      tags:
-      - "users"
-      summary: "Admins: View all users"
-      description: "Requires authentication. This is the way to list all users, or do searches on them."
-      operationId: "usersIndex"
+      - "days"
+      summary: "Show the day's info"
+      description: "This is just for viewing the day info. It will not create or update this day if it does not exist. Because this is for the logged-in user, the `x-nt-brand` and `x-nt-jwt` headers are required."
+      operationId: "daysMeShow"
       produces:
       - "application/json"
       parameters:
-      - name: "brands"
-        in: "query"
-        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
-        required: false
-        type: "string"
-      - name: "services"
-        in: "query"
-        description: "Dash-delimited list of service idents to include, as long as the user has read rights to the service. If this is blank, then it will include all of the services that the user has read rights to. Example: `pe-vhs`"
-        required: false
-        type: "string"
-      - name: "email"
-        in: "query"
-        description: "For searching by a specific email."
-        required: false
-        type: "string"
-      - name: "page"
-        in: "query"
-        description: "The page of results to show. Default is 1"
-        required: false
-        type: "string"
-      - name: "per_page"
-        in: "query"
-        description: "The number of results to show for each page. Default is 10"
-        required: false
-        type: "string"
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/UserResults"
-        "401":
-          description: "Unauthorized"
-          schema:
-            $ref: "#/definitions/Unauthorized"
-    post:
-      tags:
-      - "users"
-      summary: "Admins: Create a user with form data"
-      description: "For adding a new admin into the system."
-      operationId: "usersCreate"
-      consumes:
-      - "application/x-www-form-urlencoded"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "first_name"
-        in: "formData"
-        description: "First name of the user"
-        required: false
-        type: "string"
-      - name: "last_name"
-        in: "formData"
-        description: "Last name of the user"
-        required: false
-        type: "string"
-      - name: "email"
-        in: "formData"
-        description: "Email of the user"
-        required: false
-        type: "string"
-      - name: "brand_permissions"
-        in: "formData"
-        description: "Dash-delimited list of brand idents to give the user access to, as long as the logged-in admin has rights to those brands. Example: `su-tbm`"
-        required: false
-        type: "string"
-      - name: "service_permissions"
-        in: "formData"
-        description: "Dash-delimited list of service idents to give the user access to, as long as the logged-in admin has rights to those services. Example: `pe-vhs`"
-        required: false
-        type: "string"
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/User"
-        "401":
-          description: "Unauthorized"
-          schema:
-            $ref: "#/definitions/Unauthorized"
-  /users/{userId}:
-    get:
-      tags:
-      - "users"
-      summary: "Admins: Find user by ID"
-      description: "Get a specific user's info"
-      operationId: "usersShow"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "userId"
+      - name: "date"
         in: "path"
-        description: "ID of user to return"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
         required: true
-        type: "integer"
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can be `meals` and/or `foods` Example: `?include=meals-foods`"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
       responses:
         "200":
           description: "successful operation"
           schema:
-            $ref: "#/definitions/User"
+            $ref: "#/definitions/Day"
         "401":
           description: "Unauthorized"
           schema:
             $ref: "#/definitions/Unauthorized"
     put:
       tags:
-      - "users"
-      summary: "Admins: Updates a user with form data"
-      description: "Updating any available user data."
-      operationId: "usersUpdate"
+      - "days"
+      summary: "Update or Create the day's info"
+      description: "Even though this a PUT, it will create the record for the Day if one doesn't exist for this user on the given day. Because this is for the logged-in user, the `x-nt-brand` and `x-nt-jwt` headers are required."
+      operationId: "daysMeUpdate"
       consumes:
-      - "application/x-www-form-urlencoded"
+      - "application/json"
       produces:
       - "application/json"
       parameters:
-      - name: "userId"
+      - name: "date"
         in: "path"
-        description: "ID of member to update"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
         required: true
-        type: "integer"
-      - name: "first_name"
-        in: "formData"
-        description: "First name of the user"
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can be `meals` and/or `foods`. Example: `?include=meals-foods`"
         required: false
         type: "string"
-      - name: "last_name"
-        in: "formData"
-        description: "Last name of the user"
-        required: false
-        type: "string"
-      - name: "email"
-        in: "formData"
-        description: "Email of the user"
-        required: false
-        type: "string"
-      - name: "brand_permissions"
-        in: "formData"
-        description: "Dash-delimited list of brand idents to give the user access to, as long as the logged-in admin has rights to those brands. Example: `su-tbm`"
-        required: false
-        type: "string"
-      - name: "service_permissions"
-        in: "formData"
-        description: "Dash-delimited list of service idents to give the user access to, as long as the logged-in admin has rights to those services. Example: `pe-vhs`"
-        required: false
-        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            calories_goal:
+              type: "integer"
+            carbs_goal:
+              type: "integer"
+            protein_goal:
+              type: "integer"
+            fiber_goal:
+              type: "integer"
+            fat_goal:
+              type: "integer"
+            water_goal:
+              type: "integer"
+            water:
+              type: "integer"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
       responses:
         "200":
           description: "successful operation"
           schema:
-            $ref: "#/definitions/User"
+            $ref: "#/definitions/Day"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/days/{brandIdent}/{userId}/{date}:
+    get:
+      tags:
+      - "days"
+      summary: "Show the day's info for a member"
+      description: "This request is meant for coaches, when viewing a member's day. The `x-nt-app-id` and `x-nt-api-key` headers will be required."
+      operationId: "daysUserShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brandIdent"
+        in: "path"
+        description: "The brand code, like `su` or `af`."
+        required: true
+        type: "string"
+      - name: "userId"
+        in: "path"
+        description: "The user id in the remote system."
+        required: true
+        type: "string"
+      - name: "date"
+        in: "path"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can be `meals` and/or `foods` Example: `?include=meals-foods`"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Day"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    put:
+      tags:
+      - "days"
+      summary: "Update the day info for a specific member"
+      description: "This request is meant for coaches, when viewing or updating a member's day. If this day doesn't exist for the member, then it will be created. The `x-nt-app-id` and `x-nt-api-key` headers will be required."
+      operationId: "daysUserUpdate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brandIdent"
+        in: "path"
+        description: "The brand code, like `su` or `af`."
+        required: true
+        type: "string"
+      - name: "userId"
+        in: "path"
+        description: "The user id in the remote system."
+        required: true
+        type: "string"
+      - name: "date"
+        in: "path"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can be `meals` and/or `foods`. Example: `?include=meals-foods`"
+        required: false
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            calories_goal:
+              type: "integer"
+            carbs_goal:
+              type: "integer"
+            protein_goal:
+              type: "integer"
+            fiber_goal:
+              type: "integer"
+            fat_goal:
+              type: "integer"
+            water_goal:
+              type: "integer"
+            water:
+              type: "integer"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Day"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/meals:
+    post:
+      tags:
+      - "meals"
+      summary: "Create a new meal"
+      description: "This will create a meal for a certain date for the logged-in user. Because this is for the logged-in user, the `x-nt-brand` and `x-nt-jwt` headers are required."
+      operationId: "mealsCreate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can only be `foods`. Example: `?include=foods`"
+        required: false
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            date:
+              type: "string"
+              default: "YYYY-MM-DD"
+            meal_ident:
+              type: "string"
+              default: "dinner"
+            foods:
+              type: "array"
+              items:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                  consumed_amount:
+                    type: "integer"
+                  consumed_unit:
+                    type: "string"
+                  consumed_grams:
+                    type: "integer"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Meal"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/meals/{mealId}:
+    get:
+      tags:
+      - "meals"
+      summary: "Show the meal info"
+      description: "This is just for viewing the meal info. This request may be made by either a member or a coach. Because it can be either, the `x-nt-brand` and `x-nt-jwt` headers are NOT required."
+      operationId: "mealsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "mealId"
+        in: "path"
+        description: "Unique integer ID for this meal"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can only be `foods`. Example: `?include=foods`"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Meal"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    put:
+      tags:
+      - "meals"
+      summary: "Update the meal info"
+      description: "This is mostly just used to add more foods to the meal."
+      operationId: "mealsUpdate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "mealId"
+        in: "path"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can only be `foods`. Example: `?include=foods`"
+        required: false
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            foods:
+              type: "array"
+              items:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                  consumed_amount:
+                    type: "integer"
+                  consumed_unit:
+                    type: "string"
+                  consumed_grams:
+                    type: "integer"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Meal"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/meal_foods/{mealFoodId}:
+    get:
+      tags:
+      - "meal_foods"
+      summary: "Show the food info inside of a meal"
+      description: "This is just for viewing the meal/food info. This may not be used at all, but including it just in case it is needed."
+      operationId: "mealFoodsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "mealFoodId"
+        in: "path"
+        description: "Unique integer ID for this meal"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MealFood"
         "401":
           description: "Unauthorized"
           schema:
             $ref: "#/definitions/Unauthorized"
     delete:
       tags:
-      - "users"
-      summary: "Admins: Delete user by ID"
-      description: "Delete the record for this admin."
-      operationId: "usersDestroy"
+      - "meal_foods"
+      summary: "Remove this food from the meal"
+      description: "This is how a food is deleted out of a meal."
+      operationId: "mealFoodsDestroy"
       produces:
       - "application/json"
       parameters:
-      - name: "userId"
+      - name: "mealFoodId"
         in: "path"
-        description: "ID of user to return"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
         required: true
-        type: "integer"
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
           schema:
-            $ref: "#/definitions/User"
+            $ref: "#/definitions/MealFood"
         "401":
           description: "Unauthorized"
           schema:
             $ref: "#/definitions/Unauthorized"
+parameters:
+  xBrand:
+    in: "header"
+    name: "x-nt-brand"
+    type: "string"
+    description: "The brand code, like `su` or `af`"
+  xJwt:
+    in: "header"
+    name: "x-nt-jwt"
+    type: "string"
+    description: "The JWT token that was passed into the SDK when initializing"
+  xLanguage:
+    in: "header"
+    name: "x-nt-language"
+    type: "string"
+    description: "The locale, with language and region codes"
+  xClient:
+    in: "header"
+    name: "x-nt-client"
+    type: "string"
+    description: "Follows the format of `app_platform_major_minor_patch`.\nExamples:\n`sdk_ios_0_5_1`\n`sudna_web_3_7_1`"
+  xAppId:
+    in: "header"
+    name: "x-nt-app-id"
+    type: "string"
+    description: "Used if doing server-to-server communication."
+  xApiKey:
+    in: "header"
+    name: "x-nt-api-key"
+    type: "string"
+    description: "The JWT token that was passed into the SDK when initializing"
 definitions:
-  UserResults:
-    type: "object"
-    properties:
-      page:
-        type: "integer"
-        format: "int32"
-      per_page:
-        type: "integer"
-        format: "int32"
-      total:
-        type: "integer"
-        format: "int32"
-      total_pages:
-        type: "integer"
-        format: "int32"
-      results:
-        type: "array"
-        items:
-          $ref: "#/definitions/User"
-  User:
+  Meal:
     type: "object"
     properties:
       class_name:
         type: "string"
-        default: "User"
+        default: "Meal"
       id:
         type: "integer"
-        format: "int32"
-      display_name:
+      date:
         type: "string"
-      first_name:
+      member_id:
+        type: "integer"
+      meal_ident:
         type: "string"
-      last_name:
+      meal_icon:
         type: "string"
-      email:
+      calories:
+        type: "integer"
+      fat:
+        type: "integer"
+      fat_saturated:
+        type: "integer"
+      cholesterol:
+        type: "integer"
+      sodium:
+        type: "integer"
+      carbs:
+        type: "integer"
+      fiber:
+        type: "integer"
+      sugar:
+        type: "integer"
+      protein:
+        type: "integer"
+      created_int:
+        type: "integer"
+      updated_int:
+        type: "integer"
+      foods:
+        type: "array"
+        items:
+          $ref: "#/definitions/MealFood"
+  MealFood:
+    type: "object"
+    properties:
+      class_name:
         type: "string"
-      permissions:
+        default: "MealFood"
+      id:
+        type: "integer"
+      food_id:
+        type: "integer"
+      name:
+        type: "string"
+      consumed_amount:
+        type: "integer"
+      consumed_unit:
+        type: "string"
+      consumed_grams:
+        type: "integer"
+      consumed_fl_oz:
+        type: "integer"
+      calories:
+        type: "integer"
+      fat:
+        type: "integer"
+      fat_saturated:
+        type: "integer"
+      cholesterol:
+        type: "integer"
+      sodium:
+        type: "integer"
+      carbs:
+        type: "integer"
+      fiber:
+        type: "integer"
+      sugar:
+        type: "integer"
+      protein:
+        type: "integer"
+      created_int:
+        type: "integer"
+      updated_int:
+        type: "integer"
+  Day:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Day"
+      id:
+        type: "integer"
+      date:
+        type: "string"
+      member_id:
+        type: "integer"
+      brand_ident:
+        type: "string"
+      brand_name:
+        type: "string"
+      brand_user_id:
+        type: "string"
+      brand_alt_id:
+        type: "string"
+      calories_goal:
+        type: "integer"
+      carbs_goal:
+        type: "integer"
+      protein_goal:
+        type: "integer"
+      fiber_goal:
+        type: "integer"
+      fat_goal:
+        type: "integer"
+      water_goal:
+        type: "integer"
+      calories:
+        type: "integer"
+      fat:
+        type: "integer"
+      fat_saturated:
+        type: "integer"
+      cholesterol:
+        type: "integer"
+      sodium:
+        type: "integer"
+      carbs:
+        type: "integer"
+      fiber:
+        type: "integer"
+      sugar:
+        type: "integer"
+      protein:
+        type: "integer"
+      water:
+        type: "integer"
+      meals:
         type: "object"
         properties:
-          brands:
-            type: "array"
-            items:
-              type: "string"
-          services:
-            type: "array"
-            items:
-              type: "string"
-      brand_permissions:
-        type: "string"
-      service_permissions:
-        type: "string"
+          breakfast:
+            type: "object"
+          lunch:
+            type: "object"
+          dinner:
+            type: "object"
+          snacks:
+            type: "object"
       created_int:
         type: "integer"
         format: "int32"
@@ -373,46 +621,17 @@ definitions:
   Config:
     type: "object"
     properties:
-      brands:
-        type: "array"
-        items:
-          type: "object"
-          properties:
-            ident:
-              type: "string"
-              default: "af"
-            name:
-              type: "string"
-              default: "Anytime Fitness"
-      services:
-        type: "array"
-        items:
-          type: "object"
-          properties:
-            ident:
-              type: "string"
-              default: "vhs"
-            name:
-              type: "string"
-              default: "Video Hosting"
-  Sent:
-    type: "object"
-    properties:
-      sent:
-        type: "boolean"
-        default: true
-  Bye:
-    type: "object"
-    properties:
-      message:
-        type: "string"
-        default: "Bye!"
-  AuthError:
-    type: "object"
-    properties:
-      message:
-        type: "string"
-        default: "Sorry, that code has expired or is incorrect. Please try again."
+      colors:
+        type: "object"
+        properties:
+          light_mode_colors:
+            type: "object"
+          dark_mode_colors:
+            type: "object"
+      features:
+        type: "object"
+      translations:
+        type: "object"
   Unauthorized:
     type: "object"
     properties:
