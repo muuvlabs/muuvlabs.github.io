@@ -679,6 +679,8 @@ definitions:
         default: "Meal"
       id:
         type: "integer"
+      day_id:
+        type: "integer"
       date:
         type: "string"
       member_id:
@@ -705,6 +707,8 @@ definitions:
         type: "number"
       protein:
         type: "number"
+      is_applied:
+        type: "boolean"
       created_int:
         type: "integer"
       updated_int:
