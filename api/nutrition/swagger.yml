@@ -626,6 +626,8 @@ definitions:
         type: "integer"
       name:
         type: "string"
+      is_using_grams:
+        type: "boolean"
       servings:
         type: "array"
         items:
@@ -635,8 +637,6 @@ definitions:
               type: "string"
             grams:
               type: "number"
-      nutrition_unit:
-        type: "string"
       calories:
         type: "number"
       fat:
@@ -742,8 +742,6 @@ definitions:
       consumed_unit:
         type: "string"
       consumed_grams:
-        type: "number"
-      consumed_fl_oz:
         type: "number"
       calories:
         type: "number"
