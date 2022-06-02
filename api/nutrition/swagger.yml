@@ -231,62 +231,6 @@ paths:
           description: "Unauthorized"
           schema:
             $ref: "#/definitions/Unauthorized"
-  /nutrition/meals:
-    post:
-      tags:
-      - "meals"
-      summary: "Create a new meal"
-      description: "This will create a meal for a certain date for the logged-in user. Because this is for the logged-in user, the `x-nt-brand` and `x-nt-jwt` headers are required."
-      operationId: "mealsCreate"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "include"
-        in: "query"
-        description: "Dash-delimited list of associated records include. Can only be `foods`. Example: `?include=foods`"
-        required: false
-        type: "string"
-      - in: "body"
-        name: "body"
-        schema:
-          type: "object"
-          properties:
-            date:
-              type: "string"
-              default: "YYYY-MM-DD"
-            meal_ident:
-              type: "string"
-              default: "dinner"
-            foods:
-              type: "array"
-              items:
-                type: "object"
-                properties:
-                  id:
-                    type: "integer"
-                  consumed_amount:
-                    type: "number"
-                  consumed_unit:
-                    type: "string"
-                  consumed_grams:
-                    type: "number"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Meal"
-        "401":
-          description: "Unauthorized"
-          schema:
-            $ref: "#/definitions/Unauthorized"
   /nutrition/meals/{mealId}:
     get:
       tags:
@@ -326,7 +270,7 @@ paths:
       tags:
       - "meals"
       summary: "Update the meal info"
-      description: "This is mostly just used to add more foods to the meal."
+      description: "This is mostly just used to update the `is_applied` to true, when applying a Basket."
       operationId: "mealsUpdate"
       consumes:
       - "application/json"
@@ -348,19 +292,8 @@ paths:
         schema:
           type: "object"
           properties:
-            foods:
-              type: "array"
-              items:
-                type: "object"
-                properties:
-                  id:
-                    type: "integer"
-                  consumed_amount:
-                    type: "number"
-                  consumed_unit:
-                    type: "string"
-                  consumed_grams:
-                    type: "number"
+            is_applied:
+              type: "boolean"
       - $ref: '#/parameters/xBrand'
       - $ref: '#/parameters/xJwt'
       - $ref: '#/parameters/xLanguage'
@@ -372,6 +305,154 @@ paths:
           description: "successful operation"
           schema:
             $ref: "#/definitions/Meal"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/meals/me/{date}/{mealIdent}:
+    get:
+      tags:
+      - "meals"
+      summary: "Show the meal info"
+      description: "This is just for viewing the meal info. The `x-nt-brand` and `x-nt-jwt` headers are required. It is an alternate route, instead of the /meals/:id path."
+      operationId: "mealsMeShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "date"
+        in: "path"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
+        required: true
+        type: "string"
+      - name: "mealIdent"
+        in: "path"
+        description: "String identifier for the meal"
+        required: true
+        type: "string"
+        enum:
+        - "breakfast"
+        - "lunch"
+        - "dinner"
+        - "snacks"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can only be `foods`. Example: `?include=foods`"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Meal"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    put:
+      tags:
+      - "meals"
+      summary: "Update the meal info"
+      description: "This is mostly just used to update the `is_applied` to true, when applying a Basket. It is an alternate route, instead of the /meals/:id path."
+      operationId: "mealsMeUpdate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "date"
+        in: "path"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
+        required: true
+        type: "string"
+      - name: "mealIdent"
+        in: "path"
+        description: "String identifier for the meal"
+        required: true
+        type: "string"
+        enum:
+        - "breakfast"
+        - "lunch"
+        - "dinner"
+        - "snacks"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can only be `foods`. Example: `?include=foods`"
+        required: false
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            is_applied:
+              type: "boolean"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Meal"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/meal_foods:
+    post:
+      tags:
+      - "meal_foods"
+      summary: "Add a Food to a Meal"
+      description: "This is to add a specific Food with consumed quantities to a Meal (or basket). If the Meal for the given `date`/`meal_ident` doesn't exist, it will be created. The `meal_id` is not required of those fields exist. If this request is being made by a coach for a member, then the `member_id` will be required, or else it will be created for the coach's member."
+      operationId: "mealFoodsCreate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            date:
+              type: "string"
+            meal_ident:
+              type: "string"
+            meal_id:
+              type: "integer"
+            member_id:
+              type: "integer"
+            food_id:
+              type: "integer"
+            consumed_amount:
+              type: "number"
+            consumed_unit:
+              type: "string"
+            consumed_grams:
+              type: "number"
+            consumed_fl_oz:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MealFood"
         "401":
           description: "Unauthorized"
           schema:
@@ -640,8 +721,16 @@ definitions:
         default: "MealFood"
       id:
         type: "integer"
+      member_id:
+        type: "integer"
+      meal_id:
+        type: "integer"
       food_id:
         type: "integer"
+      date:
+        type: "string"
+      meal_ident:
+        type: "string"
       name:
         type: "string"
       consumed_amount:
