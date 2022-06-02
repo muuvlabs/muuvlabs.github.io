@@ -842,6 +842,8 @@ definitions:
             type: "object"
       features:
         type: "object"
+      nutrients:
+        type: "object"
       translations:
         type: "object"
   SearchResults:
