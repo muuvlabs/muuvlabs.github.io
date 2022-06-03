@@ -858,6 +858,8 @@ definitions:
     properties:
       tab:
         type: "string"
+      meal_ident:
+        type: "string"
       term:
         type: "string"
       sections:
