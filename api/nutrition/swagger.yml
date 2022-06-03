@@ -532,6 +532,11 @@ paths:
         required: false
         type: "string"
         default: "all"
+      - name: "meal_ident"
+        in: "query"
+        description: "One of: `breakfast`, `lunch`, `dinner`, `snacks`."
+        required: false
+        type: "string"
       - name: "term"
         in: "query"
         description: "The search query that the user entered."
