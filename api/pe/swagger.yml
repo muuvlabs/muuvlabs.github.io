@@ -58,6 +58,8 @@ tags:
   description: "Admins Only: Tags"
 - name: "translations"
   description: "Admins Only: Translations"
+- name: "webhooks"
+  description: "Server-to-Server Data"
 schemes:
 - "https"
 paths:
@@ -4278,6 +4280,42 @@ paths:
           description: "Invalid input"
       security:
       - jwt: []
+  /pe/webhooks/{brandIdent}:
+    post:
+      tags:
+      - "webhooks"
+      summary: "For server-to-server sending of data"
+      description: "This will be used to update us that there's been a change in data for PT sessions, door swipes, or anything else."
+      operationId: "peWebhooks"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brandIdent"
+        in: "path"
+        description: "The brand code, like `su` or `af`"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/WebhookResponse"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
 securityDefinitions:
   jwt:
     type: "apiKey"
@@ -5448,3 +5486,9 @@ definitions:
       updated_int:
         type: "integer"
         format: "int32"
+  WebhookResponse:
+    type: "object"
+    properties:
+      ok:
+        type: "boolean"
+        default: true
