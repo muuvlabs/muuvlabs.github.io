@@ -1860,7 +1860,7 @@ paths:
     get:
       tags:
       - "plan_programs"
-      summary: "Admins: Get all plan_programs"
+      summary: "Get all plan_programs"
       description: "Returns results for all the plan_programs in the system"
       operationId: "pePlanProgramsIndex"
       produces:
@@ -1883,7 +1883,7 @@ paths:
         type: "string"
       - name: "include"
         in: "query"
-        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-plan`"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Only accepts `program` right now."
         required: false
         type: "string"
       - name: "page"
@@ -1896,6 +1896,12 @@ paths:
         description: "The number of results to show for each page. Default is 10"
         required: false
         type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
@@ -1905,12 +1911,10 @@ paths:
           description: "Unauthorized"
         "403":
           description: "Forbidden"
-      security:
-      - jwt: []
     post:
       tags:
       - "plan_programs"
-      summary: "Admins: Creates a plan_program with form data"
+      summary: "Creates a plan_program with form data"
       description: "To add a new plan_program"
       operationId: "pePlanProgramCreate"
       consumes:
@@ -1920,7 +1924,7 @@ paths:
       parameters:
       - name: "include"
         in: "query"
-        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-phase`"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Only accepts `program` right now."
         required: false
         type: "string"
       - name: "program_id"
@@ -1928,16 +1932,32 @@ paths:
         description: "ID of the program."
         required: false
         type: "integer"
-      - name: "phase_id"
+      - name: "plan_id"
         in: "formData"
-        description: "ID of the phase."
+        description: "ID of the plan. The member will be set based on this."
         required: false
         type: "integer"
-      - name: "position"
+      - name: "start_int"
         in: "formData"
-        description: "The place this phase should go in the program."
+        description: "Milliseconds since epoch. Time that the program will start."
         required: false
         type: "integer"
+      - name: "stop_int"
+        in: "formData"
+        description: "Milliseconds since epoch. Time that the program will end."
+        required: false
+        type: "integer"
+      - name: "is_completed"
+        in: "formData"
+        description: "Is this program completed?"
+        required: false
+        type: "boolean"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
@@ -1951,13 +1971,11 @@ paths:
           description: "Not found"
         "405":
           description: "Invalid input"
-      security:
-      - jwt: []
   /pe/plan_programs/{planProgramId}:
     get:
       tags:
       - "plan_programs"
-      summary: "Admins: Find plan_program by ID"
+      summary: "Find plan_program by ID"
       description: "Get a specific plan_program info"
       operationId: "pePlanProgramsShow"
       produces:
@@ -1970,9 +1988,15 @@ paths:
         type: "string"
       - name: "include"
         in: "query"
-        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-phase`"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Only accepts `program` right now."
         required: false
         type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
@@ -1984,12 +2008,10 @@ paths:
           description: "Forbidden"
         "404":
           description: "Not found"
-      security:
-      - jwt: []
     put:
       tags:
       - "plan_programs"
-      summary: "Admins: Updates a plan_program with form data"
+      summary: "Updates a plan_program with form data"
       description: "Change the data of a plan_program"
       operationId: "pePlanProgramsUpdate"
       consumes:
@@ -2012,16 +2034,32 @@ paths:
         description: "ID of the program."
         required: false
         type: "integer"
-      - name: "phase_id"
+      - name: "plan_id"
         in: "formData"
-        description: "ID of the phase."
+        description: "ID of the plan. The member will be set based on this."
         required: false
         type: "integer"
-      - name: "position"
+      - name: "start_int"
         in: "formData"
-        description: "The place this phase should go in the program."
+        description: "Milliseconds since epoch. Time that the program will start."
         required: false
         type: "integer"
+      - name: "stop_int"
+        in: "formData"
+        description: "Milliseconds since epoch. Time that the program will end."
+        required: false
+        type: "integer"
+      - name: "is_completed"
+        in: "formData"
+        description: "Is this program completed?"
+        required: false
+        type: "boolean"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
@@ -2035,12 +2073,10 @@ paths:
           description: "Not found"
         "405":
           description: "Invalid input"
-      security:
-      - jwt: []
     delete:
       tags:
       - "plan_programs"
-      summary: "Admins: Deletes a plan_program"
+      summary: "Deletes a plan_program"
       description: "Paranoid delete: sets the deleted_at to the timestamp"
       operationId: "pePlanProgramsDelete"
       produces:
@@ -2051,6 +2087,12 @@ paths:
         description: "ID of plan_program to delete"
         required: true
         type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
@@ -2064,8 +2106,6 @@ paths:
           description: "Not found"
         "405":
           description: "Invalid input"
-      security:
-      - jwt: []
   /pe/program_brands:
     get:
       tags:

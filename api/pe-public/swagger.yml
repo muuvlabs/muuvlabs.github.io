@@ -406,7 +406,7 @@ paths:
         type: "string"
       - name: "include"
         in: "query"
-        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-plan`"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Only accepts `program` right now."
         required: false
         type: "string"
       - name: "page"
@@ -419,6 +419,12 @@ paths:
         description: "The number of results to show for each page. Default is 10"
         required: false
         type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
@@ -441,7 +447,7 @@ paths:
       parameters:
       - name: "include"
         in: "query"
-        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-phase`"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Only accepts `program` right now."
         required: false
         type: "string"
       - name: "program_id"
@@ -449,16 +455,32 @@ paths:
         description: "ID of the program."
         required: false
         type: "integer"
-      - name: "phase_id"
+      - name: "plan_id"
         in: "formData"
-        description: "ID of the phase."
+        description: "ID of the plan. The member will be set based on this."
         required: false
         type: "integer"
-      - name: "position"
+      - name: "start_int"
         in: "formData"
-        description: "The place this phase should go in the program."
+        description: "Milliseconds since epoch. Time that the program will start."
         required: false
         type: "integer"
+      - name: "stop_int"
+        in: "formData"
+        description: "Milliseconds since epoch. Time that the program will end."
+        required: false
+        type: "integer"
+      - name: "is_completed"
+        in: "formData"
+        description: "Is this program completed?"
+        required: false
+        type: "boolean"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
@@ -489,9 +511,15 @@ paths:
         type: "string"
       - name: "include"
         in: "query"
-        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Example: `program-phase`"
+        description: "Dash-delimited list of associated objects to include, by field name. If not given, these fields will be null. Only accepts `program` right now."
         required: false
         type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
@@ -529,16 +557,32 @@ paths:
         description: "ID of the program."
         required: false
         type: "integer"
-      - name: "phase_id"
+      - name: "plan_id"
         in: "formData"
-        description: "ID of the phase."
+        description: "ID of the plan. The member will be set based on this."
         required: false
         type: "integer"
-      - name: "position"
+      - name: "start_int"
         in: "formData"
-        description: "The place this phase should go in the program."
+        description: "Milliseconds since epoch. Time that the program will start."
         required: false
         type: "integer"
+      - name: "stop_int"
+        in: "formData"
+        description: "Milliseconds since epoch. Time that the program will end."
+        required: false
+        type: "integer"
+      - name: "is_completed"
+        in: "formData"
+        description: "Is this program completed?"
+        required: false
+        type: "boolean"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
@@ -566,6 +610,12 @@ paths:
         description: "ID of plan_program to delete"
         required: true
         type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
       responses:
         "200":
           description: "successful operation"
