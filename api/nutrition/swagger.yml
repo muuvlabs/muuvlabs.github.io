@@ -12,10 +12,18 @@ tags:
   description: "The app config and translations"
 - name: "days"
   description: "Summary of days with meals"
+- name: "foods"
+  description: "Food - Nutritionix or Custom"
 - name: "meals"
   description: "The meals for a specific user"
 - name: "meal_foods"
   description: "The specific food in a meal"
+- name: "meal_recipes"
+  description: "The specific recipe in a meal"
+- name: "recipes"
+  description: "A user-created recipe"
+- name: "recipe_foods"
+  description: "The specific food in a recipe"
 - name: "search"
   description: "For returning food search results"
 schemes:
@@ -72,6 +80,49 @@ paths:
           description: "Unauthorized"
           schema:
             $ref: "#/definitions/Unauthorized"
+    put:
+      tags:
+      - "days"
+      summary: "Update the water consumed for a day"
+      description: "This is just used to update the `water` amount consumed each day."
+      operationId: "daysMeUpdate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "date"
+        in: "path"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can only be `foods`. Example: `?include=foods`"
+        required: false
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            water:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Meal"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
   /nutrition/days/{brandIdent}/{userId}/{date}:
     get:
       tags:
@@ -111,6 +162,271 @@ paths:
           description: "successful operation"
           schema:
             $ref: "#/definitions/Day"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    put:
+      tags:
+      - "days"
+      summary: "Update the water consumed for a day"
+      description: "This is just used to update the `water` amount consumed each day."
+      operationId: "daysUserUpdate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brandIdent"
+        in: "path"
+        description: "The brand code, like `su` or `af`."
+        required: true
+        type: "string"
+      - name: "userId"
+        in: "path"
+        description: "The user id in the remote system."
+        required: true
+        type: "string"
+      - name: "date"
+        in: "path"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can only be `foods`. Example: `?include=foods`"
+        required: false
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            water:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Meal"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/foods:
+    get:
+      tags:
+      - "foods"
+      summary: "See All Foods"
+      description: "This is to see the list of foods. It almost always will be used in the context of seeing the currently logged in member's own foods. If the user is an Admin, it will allow them to see other member's foods."
+      operationId: "foodsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "members"
+        in: "query"
+        description: "Dash-delimited list of member_ids to view the custom foods of."
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/FoodResults"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    post:
+      tags:
+      - "foods"
+      summary: "Add a Custom Food"
+      description: "This is what the members will use to create their own custom foods. This should set the member_id to the logged-in member's id."
+      operationId: "foodsCreate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            servings:
+              type: "object"
+            is_using_grams:
+              type: "boolean"
+            calories:
+              type: "number"
+            fat:
+              type: "number"
+            fat_saturated:
+              type: "number"
+            cholesterol:
+              type: "number"
+            sodium:
+              type: "number"
+            carbs:
+              type: "number"
+            fiber:
+              type: "number"
+            sugar:
+              type: "number"
+            protein:
+              type: "number"
+            vitamin_a:
+              type: "number"
+            vitamin_c:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Food"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/foods/{foodId}:
+    get:
+      tags:
+      - "foods"
+      summary: "Show the food info"
+      description: "This is just for viewing the food info."
+      operationId: "foodsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "foodId"
+        in: "path"
+        description: "Unique integer ID for this food"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MealFood"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    put:
+      tags:
+      - "foods"
+      summary: "Update a Custom Food"
+      description: "This is what the members will use to update their own custom foods."
+      operationId: "foodsUpdate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "foodId"
+        in: "path"
+        description: "Unique integer ID for this food"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            servings:
+              type: "object"
+            is_using_grams:
+              type: "boolean"
+            calories:
+              type: "number"
+            fat:
+              type: "number"
+            fat_saturated:
+              type: "number"
+            cholesterol:
+              type: "number"
+            sodium:
+              type: "number"
+            carbs:
+              type: "number"
+            fiber:
+              type: "number"
+            sugar:
+              type: "number"
+            protein:
+              type: "number"
+            vitamin_a:
+              type: "number"
+            vitamin_c:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Food"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    delete:
+      tags:
+      - "foods"
+      summary: "Remove this food"
+      description: "This is how a food is deleted."
+      operationId: "foodsDestroy"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "foodId"
+        in: "path"
+        description: "Unique integer ID for this food"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Food"
         "401":
           description: "Unauthorized"
           schema:
@@ -163,7 +479,50 @@ paths:
       parameters:
       - name: "mealId"
         in: "path"
-        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
+        description: "Unique ID for the meal"
+        required: true
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can only be `foods`. Example: `?include=foods`"
+        required: false
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            is_applied:
+              type: "boolean"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Meal"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    delete:
+      tags:
+      - "meals"
+      summary: "Delete the meal"
+      description: "This is mostly just to clear all items from a Basket."
+      operationId: "mealsDestroy"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "mealId"
+        in: "path"
+        description: "Unique ID for the meal"
         required: true
         type: "string"
       - name: "include"
@@ -291,12 +650,58 @@ paths:
           description: "Unauthorized"
           schema:
             $ref: "#/definitions/Unauthorized"
+    delete:
+      tags:
+      - "meals"
+      summary: "Delete the meal"
+      description: "This is mostly just to clear all items from a Basket. It is an alternate route, instead of the /meals/:id path."
+      operationId: "mealsMeDestroy"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "date"
+        in: "path"
+        description: "Date identifier in YYYY-MM-DD format. Example `2022-05-31`"
+        required: true
+        type: "string"
+      - name: "mealIdent"
+        in: "path"
+        description: "String identifier for the meal"
+        required: true
+        type: "string"
+        enum:
+        - "breakfast"
+        - "lunch"
+        - "dinner"
+        - "snacks"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records include. Can only be `foods`. Example: `?include=foods`"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Meal"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
   /nutrition/meal_foods:
     post:
       tags:
       - "meal_foods"
       summary: "Add a Food to a Meal"
-      description: "This is to add a specific Food with consumed quantities to a Meal (or basket). If the Meal for the given `date`/`meal_ident` doesn't exist, it will be created. The `meal_id` is not required of those fields exist. If this request is being made by a coach for a member, then the `member_id` will be required, or else it will be created for the coach's member."
+      description: "This is to add a specific Food with consumed quantities to a Meal (or basket). If the Meal for the given `date`/`meal_ident` doesn't exist, it will be created. The `meal_id` is not required if those fields exist. If this request is being made by a coach for a member, then the `member_id` will be required, or else it will be created for the coach's member."
       operationId: "mealFoodsCreate"
       consumes:
       - "application/json"
@@ -323,8 +728,6 @@ paths:
             consumed_unit:
               type: "string"
             consumed_grams:
-              type: "number"
-            consumed_fl_oz:
               type: "number"
       - $ref: '#/parameters/xBrand'
       - $ref: '#/parameters/xJwt'
@@ -396,6 +799,505 @@ paths:
           description: "successful operation"
           schema:
             $ref: "#/definitions/MealFood"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/meal_recipes:
+    get:
+      tags:
+      - "meal_recipes"
+      summary: "Show all the MealRecipe records"
+      description: "This likely is unneeded."
+      operationId: "mealRecipesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MealRecipeResults"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    post:
+      tags:
+      - "meal_recipes"
+      summary: "Add a Recipe to a Meal"
+      description: "This is to add a specific Recipe with consumed quantities to a Meal (or basket). If the Meal for the given `date`/`meal_ident` doesn't exist, it will be created. The `meal_id` is not required if those fields exist. If this request is being made by a coach for a member, then the `member_id` will be required, or else it will be created for the coach's member."
+      operationId: "mealRecipesCreate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            date:
+              type: "string"
+            meal_ident:
+              type: "string"
+            meal_id:
+              type: "integer"
+            member_id:
+              type: "integer"
+            recipe_id:
+              type: "integer"
+            consumed_amount:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MealRecipe"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/meal_recipes/{mealRecipeId}:
+    get:
+      tags:
+      - "meal_recipes"
+      summary: "Show the food info inside of a meal"
+      description: "This is just for viewing the meal/food info. This may not be used at all, but including it just in case it is needed."
+      operationId: "mealRecipesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "mealRecipeId"
+        in: "path"
+        description: "Unique integer ID for this meal/recipe pairing"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MealRecipe"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    put:
+      tags:
+      - "meal_recipes"
+      summary: "Update a Recipe in a Meal"
+      description: "This is to update the amount of servings consumed of this recipe, for this meal."
+      operationId: "mealRecipesUpdate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "mealRecipeId"
+        in: "path"
+        description: "Unique integer ID for this meal/recipe pairing"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            consumed_amount:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MealRecipe"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    delete:
+      tags:
+      - "meal_recipes"
+      summary: "Remove this recipe from the meal"
+      description: "This is how a recipe is deleted out of a meal."
+      operationId: "mealRecipesDestroy"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "mealRecipeId"
+        in: "path"
+        description: "Unique integer ID for this meal/recipe pairing"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MealRecipe"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/recipes:
+    get:
+      tags:
+      - "recipes"
+      summary: "Show all the Recipe records"
+      description: "This likely is unneeded, but maybe for viewing all of a member's recipes."
+      operationId: "recipesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/RecipeResults"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    post:
+      tags:
+      - "recipes"
+      summary: "Add a Recipe"
+      description: "This creates the recipe record, which will have foods added to it."
+      operationId: "recipesCreate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            date:
+              type: "string"
+            meal_ident:
+              type: "string"
+            meal_id:
+              type: "integer"
+            member_id:
+              type: "integer"
+            recipe_id:
+              type: "integer"
+            consumed_amount:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Recipe"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/recipes/{recipeId}:
+    get:
+      tags:
+      - "recipes"
+      summary: "Show a specific recipe"
+      description: "This is just for viewing the recipe info."
+      operationId: "recipesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "recipeId"
+        in: "path"
+        description: "Unique integer ID for this recipe"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Recipe"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    put:
+      tags:
+      - "recipes"
+      summary: "Update a Recipe"
+      description: "For changing the information about the recipe, like name or notes."
+      operationId: "recipesUpdate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "recipeId"
+        in: "path"
+        description: "Unique integer ID for this recipe"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            consumed_amount:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Recipe"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    delete:
+      tags:
+      - "recipes"
+      summary: "Remove this recipe"
+      description: "This is how a recipe is deleted."
+      operationId: "recipesDestroy"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "recipeId"
+        in: "path"
+        description: "Unique integer ID for this recipe"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Recipe"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/recipe_foods:
+    get:
+      tags:
+      - "recipe_foods"
+      summary: "See all RecipeFood records"
+      description: "This may not be needed"
+      operationId: "recipeFoodsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/RecipeFoodResults"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    post:
+      tags:
+      - "recipe_foods"
+      summary: "Add a Food to a Recipe"
+      description: "This is to add a specific Food with added quantities to a Recipe. If this request is being made by a coach for a member, then the `member_id` will be required, or else it will be created for the coach's member."
+      operationId: "recipeFoodsCreate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            member_id:
+              type: "integer"
+            recipe_id:
+              type: "integer"
+            food_id:
+              type: "integer"
+            added_amount:
+              type: "number"
+            added_unit:
+              type: "string"
+            added_grams:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/RecipeFood"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+  /nutrition/recipe_foods/{recipeFoodId}:
+    get:
+      tags:
+      - "recipe_foods"
+      summary: "Show the food info inside of a recipe"
+      description: "This is just for viewing the recipe/food info. This may not be used at all, but including it just in case it is needed."
+      operationId: "recipeFoodsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "recipeFoodId"
+        in: "path"
+        description: "Unique integer ID for this RecipeFood"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/RecipeFood"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    put:
+      tags:
+      - "recipe_foods"
+      summary: "Update the food info inside of a recipe"
+      description: "This is just for changing the added amounts of a food inside of a recipe."
+      operationId: "recipeFoodsUpdate"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "recipeFoodId"
+        in: "path"
+        description: "Unique integer ID for this RecipeFood"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+          properties:
+            added_amount:
+              type: "number"
+            added_unit:
+              type: "string"
+            added_grams:
+              type: "number"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/RecipeFood"
+        "401":
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Unauthorized"
+    delete:
+      tags:
+      - "recipe_foods"
+      summary: "Remove this food from the recipe"
+      description: "This is how a food is deleted out of a recipe."
+      operationId: "recipeFoodsDestroy"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "recipeFoodId"
+        in: "path"
+        description: "Unique integer ID for this RecipeFood"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/RecipeFood"
         "401":
           description: "Unauthorized"
           schema:
@@ -505,6 +1407,25 @@ parameters:
     type: "string"
     description: "The JWT token that was passed into the SDK when initializing"
 definitions:
+  FoodResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Food"
   Food:
     type: "object"
     properties:
@@ -515,6 +1436,8 @@ definitions:
         type: "integer"
       name:
         type: "string"
+      member_id:
+        type: "integer"
       is_using_grams:
         type: "boolean"
       servings:
@@ -543,6 +1466,10 @@ definitions:
       sugar:
         type: "number"
       protein:
+        type: "number"
+      vitamin_a:
+        type: "number"
+      vitamin_c:
         type: "number"
       photo:
         type: "string"
@@ -595,6 +1522,10 @@ definitions:
       sugar:
         type: "number"
       protein:
+        type: "number"
+      vitamin_a:
+        type: "number"
+      vitamin_c:
         type: "number"
       is_applied:
         type: "boolean"
@@ -650,6 +1581,142 @@ definitions:
         type: "number"
       protein:
         type: "number"
+      vitamin_a:
+        type: "number"
+      vitamin_c:
+        type: "number"
+      created_int:
+        type: "integer"
+      updated_int:
+        type: "integer"
+  MealRecipeResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/MealRecipe"
+  MealRecipe:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "MealRecipe"
+      id:
+        type: "integer"
+      member_id:
+        type: "integer"
+      meal_id:
+        type: "integer"
+      recipe_id:
+        type: "integer"
+      date:
+        type: "string"
+      meal_ident:
+        type: "string"
+      name:
+        type: "string"
+      consumed_amount:
+        type: "number"
+      calories:
+        type: "number"
+      fat:
+        type: "number"
+      fat_saturated:
+        type: "number"
+      cholesterol:
+        type: "number"
+      sodium:
+        type: "number"
+      carbs:
+        type: "number"
+      fiber:
+        type: "number"
+      sugar:
+        type: "number"
+      protein:
+        type: "number"
+      vitamin_a:
+        type: "number"
+      vitamin_c:
+        type: "number"
+      created_int:
+        type: "integer"
+      updated_int:
+        type: "integer"
+  RecipeFoodResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/RecipeFood"
+  RecipeFood:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "RecipeFood"
+      id:
+        type: "integer"
+      member_id:
+        type: "integer"
+      recipe_id:
+        type: "integer"
+      food_id:
+        type: "integer"
+      added_amount:
+        type: "number"
+      added_unit:
+        type: "string"
+      added_grams:
+        type: "number"
+      calories:
+        type: "number"
+      fat:
+        type: "number"
+      fat_saturated:
+        type: "number"
+      cholesterol:
+        type: "number"
+      sodium:
+        type: "number"
+      carbs:
+        type: "number"
+      fiber:
+        type: "number"
+      sugar:
+        type: "number"
+      protein:
+        type: "number"
+      vitamin_a:
+        type: "number"
+      vitamin_c:
+        type: "number"
       created_int:
         type: "integer"
       updated_int:
@@ -704,6 +1771,10 @@ definitions:
         type: "number"
       protein:
         type: "number"
+      vitamin_a:
+        type: "number"
+      vitamin_c:
+        type: "number"
       water:
         type: "number"
       meals:
@@ -737,6 +1808,71 @@ definitions:
         type: "object"
       translations:
         type: "object"
+  RecipeResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Recipe"
+  Recipe:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Recipe"
+      id:
+        type: "integer"
+      member_id:
+        type: "integer"
+      name:
+        type: "string"
+      notes:
+        type: "string"
+      servings:
+        type: "number"
+      calories:
+        type: "number"
+      fat:
+        type: "number"
+      fat_saturated:
+        type: "number"
+      cholesterol:
+        type: "number"
+      sodium:
+        type: "number"
+      carbs:
+        type: "number"
+      fiber:
+        type: "number"
+      sugar:
+        type: "number"
+      protein:
+        type: "number"
+      vitamin_a:
+        type: "number"
+      vitamin_c:
+        type: "number"
+      created_int:
+        type: "integer"
+      updated_int:
+        type: "integer"
+      foods:
+        type: "array"
+        items:
+          $ref: "#/definitions/RecipeFood"
   SearchResults:
     type: "object"
     properties:
