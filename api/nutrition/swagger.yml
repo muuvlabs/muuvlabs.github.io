@@ -1009,18 +1009,12 @@ paths:
         schema:
           type: "object"
           properties:
-            date:
+            name:
               type: "string"
-            meal_ident:
+            notes:
               type: "string"
-            meal_id:
+            servings:
               type: "integer"
-            member_id:
-              type: "integer"
-            recipe_id:
-              type: "integer"
-            consumed_amount:
-              type: "number"
       - $ref: '#/parameters/xBrand'
       - $ref: '#/parameters/xJwt'
       - $ref: '#/parameters/xLanguage'
