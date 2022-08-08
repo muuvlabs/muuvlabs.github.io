@@ -1012,8 +1012,6 @@ paths:
           description: "Not found"
         "405":
           description: "Invalid input"
-
-
   /community/reactions:
     get:
       tags:
@@ -1445,6 +1443,21 @@ paths:
         description: "Dash-delimited list of tag group ids to include, as long as the user has read rights to the tag group. If this is blank, then it will include all of the tag groups that the user has read rights to. Example: `1-4-5`"
         required: false
         type: "string"
+      - name: "visibilities"
+        in: "query"
+        description: "Admins Only: Dash-delimited list of visibility idents to include. Example: `pending-published`"
+        required: false
+        type: "string"
+      - name: "member_id"
+        in: "query"
+        description: "Tags created by this member ID. Also allows for `me` instead of the ID, if you need the current member's tags. Example: `?member_id=me`"
+        required: false
+        type: "string"
+      - name: "is_featured"
+        in: "query"
+        description: "For showing Featured Tags, or excluding them. Use `1` to show featured, `0` to exclude featured, or remove to show all."
+        required: false
+        type: "string"
       - name: "page"
         in: "query"
         description: "The page of results to show. Default is 1"
@@ -1455,6 +1468,14 @@ paths:
         description: "The number of results to show for each page. Default is 10"
         required: false
         type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
       responses:
         "200":
           description: "successful operation"
