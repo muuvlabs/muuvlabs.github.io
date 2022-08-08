@@ -1863,14 +1863,94 @@ definitions:
         default: "Post"
       id:
         type: "integer"
+      title:
+        type: "string"
+      body:
+        type: "string"
       member_id:
         type: "integer"
-      resource_type:
+      brand_ident:
         type: "string"
-      resource_id:
+      brand_name:
+        type: "string"
+      post_type:
+        type: "string"
+      parent_id:
         type: "integer"
-      status:
+      poster_id:
+        type: "integer"
+      poster_url:
         type: "string"
+      thumbnail_url:
+        type: "string"
+      graphic_url:
+        type: "string"
+      video_id:
+        type: "integer"
+      video_url:
+        type: "string"
+      hls_url:
+        type: "string"
+      transcript_id:
+        type: "integer"
+      transcript_url:
+        type: "string"
+      is_reel:
+        type: "boolean"
+      is_answered:
+        type: "boolean"
+      is_featured:
+        type: "boolean"
+      is_trending:
+        type: "boolean"
+      visibility:
+        type: "string"
+      posted_int:
+        type: "integer"
+      created_int:
+        type: "integer"
+      updated_int:
+        type: "integer"
+      response_ids:
+        type: "array"
+        items:
+          type: "integer"
+      responses:
+        type: "array"
+        items:
+          type: "object"
+      reaction_ids:
+        type: "array"
+        items:
+          type: "integer"
+      reactions:
+        type: "array"
+        items:
+          $ref: "#/definitions/Reaction"
+      comment_count:
+        type: "integer"
+      liked_count:
+        type: "integer"
+      attachment_ids:
+        type: "array"
+        items:
+          type: "integer"
+      attachments:
+        type: "array"
+        items:
+          $ref: "#/definitions/Asset"
+      tag_ids:
+        type: "array"
+        items:
+          type: "integer"
+      tags:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagSimple"
+      tag_groups:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagGroupSimple"
   ReactionResults:
     type: "object"
     properties:
