@@ -674,11 +674,69 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "term"
+        in: "query"
+        description: "Search terms for finding posts, usually questions."
+        required: false
+        type: "string"
       - name: "brands"
         in: "query"
         description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
         required: false
         type: "string"
+      - name: "member_id"
+        in: "query"
+        description: "Posts created by this member ID. Also allows for `me` instead of the ID, if you need the current member's posts. Example: `?member_id=me`"
+        required: false
+        type: "string"
+      - name: "is_reel"
+        in: "query"
+        description: "For showing just Reels, or excluding them. Use `1` to show only reels, `0` to exclude reels, or remove to show all."
+        required: false
+        type: "string"
+      - name: "is_trending"
+        in: "query"
+        description: "For showing Trending Posts, or excluding them. Use `1` to show trending, `0` to exclude trending, or remove to show all."
+        required: false
+        type: "string"
+      - name: "is_featured"
+        in: "query"
+        description: "For showing Featured Posts, or excluding them. Use `1` to show featured, `0` to exclude featured, or remove to show all."
+        required: false
+        type: "string"
+      - name: "start_int"
+        in: "query"
+        description: "Milliseconds since epoch for showing all Posts with a `posted_at` greater than this timestamp."
+        required: false
+        type: "integer"
+      - name: "stop_int"
+        in: "query"
+        description: "Milliseconds since epoch for showing all Posts with a `posted_at` less than this timestamp."
+        required: false
+        type: "integer"
+      - name: "include_tags"
+        in: "query"
+        description: "Dash-delimited list of tag IDs to include. Example: `10-24`."
+        required: false
+        type: "string"
+      - name: "exclude_tags"
+        in: "query"
+        description: "Dash-delimited list of tag IDs to exclude. Example: `10-24`."
+        required: false
+        type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records to include. There's both `responses` and `reactions` that can be used. Example: `?include=responses-reactions`"
+        required: false
+        type: "string"
+      - name: "sort"
+        in: "query"
+        description: "Sorting by a specific field. These look like SQL, but are predetermined strings that are allowed. Default is `posted_at-ASC`"
+        required: false
+        type: "string"
+        enum:
+          - "posted_at-DESC"
+          - "posted_at-ASC"
       - name: "page"
         in: "query"
         description: "The page of results to show. Default is 1"
@@ -717,19 +775,64 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - name: "name"
+      - name: "post_type"
         in: "formData"
-        description: "Name of the tag group"
+        description: "The type of the post"
         required: false
         type: "string"
-      - name: "brand_ident"
+        enum:
+        - "question"
+        - "answer"
+        - "comment"
+        - "article"
+      - name: "title"
         in: "formData"
-        description: "Optional. The brand code for this, like `tbm`"
+        description: "Title of question or article"
         required: false
         type: "string"
-      - name: "position"
+      - name: "body"
         in: "formData"
-        description: "Where should this tag group be placed in the Admin? If this is blank or missing, it will be placed at the end of the list."
+        description: "Body of the post"
+        required: false
+        type: "string"
+      - name: "parent_id"
+        in: "formData"
+        description: "When responding to another Post (comment or answer), this is the ID of that Post."
+        required: false
+        type: "integer"
+      - name: "is_reel"
+        in: "formData"
+        description: "Expert Coach or Admin only. For marking this Post as a Reel."
+        required: false
+        type: "boolean"
+      - name: "is_trending"
+        in: "formData"
+        description: "Expert Coach or Admin only. For marking this Post as Trending."
+        required: false
+        type: "boolean"
+      - name: "is_featured"
+        in: "formData"
+        description: "Expert Coach or Admin only. For marking this Post as Featured."
+        required: false
+        type: "boolean"
+      - name: "visibility"
+        in: "formData"
+        description: "Expert Coach or Admin only. For approving posts to be seen in the app."
+        required: false
+        type: "string"
+        enum:
+        - "pending"
+        - "denied"
+        - "published"
+        - "unpublished"
+      - name: "posted_int"
+        in: "formData"
+        description: "Expert Coach or Admin only. Timestamp in milliseconds since epoch, as the published time of the Post. Defaults to when it was created."
+        required: false
+        type: "integer"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records to include. There's both `responses` and `reactions` that can be used. Example: `?include=responses-reactions`"
         required: false
         type: "string"
       - $ref: '#/parameters/xBrand'
@@ -768,6 +871,11 @@ paths:
         description: "ID of the tag group to show"
         required: true
         type: "string"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records to include. There's both `responses` and `reactions` that can be used. Example: `?include=responses-reactions`"
+        required: false
+        type: "string"
       - $ref: '#/parameters/xBrand'
       - $ref: '#/parameters/xJwt'
       - $ref: '#/parameters/xLanguage'
@@ -791,7 +899,7 @@ paths:
       tags:
       - "posts"
       summary: "Public: Updates a post with form data"
-      description: "Change the name or position of a tag group"
+      description: "Updates the post info."
       operationId: "csPostsUpdate"
       consumes:
       - "application/x-www-form-urlencoded"
@@ -803,19 +911,49 @@ paths:
         description: "ID of tag group to update"
         required: true
         type: "string"
-      - name: "name"
+      - name: "title"
         in: "formData"
-        description: "Name of the tag group"
+        description: "Title of question or article"
         required: false
         type: "string"
-      - name: "brand_ident"
+      - name: "body"
         in: "formData"
-        description: "Optional. The brand code for this, like `tbm`"
+        description: "Body of the post"
         required: false
         type: "string"
-      - name: "position"
+      - name: "is_reel"
         in: "formData"
-        description: "Where should this tag group be placed in the Admin? If this is blank or missing, it will be placed at the end of the list."
+        description: "Expert Coach or Admin only. For marking this Post as a Reel."
+        required: false
+        type: "boolean"
+      - name: "is_trending"
+        in: "formData"
+        description: "Expert Coach or Admin only. For marking this Post as Trending."
+        required: false
+        type: "boolean"
+      - name: "is_featured"
+        in: "formData"
+        description: "Expert Coach or Admin only. For marking this Post as Featured."
+        required: false
+        type: "boolean"
+      - name: "visibility"
+        in: "formData"
+        description: "Expert Coach or Admin only. For approving posts to be seen in the app."
+        required: false
+        type: "string"
+        enum:
+        - "pending"
+        - "denied"
+        - "published"
+        - "unpublished"
+      - name: "posted_int"
+        in: "formData"
+        description: "Expert Coach or Admin only. Timestamp in milliseconds since epoch, as the published time of the Post. Defaults to when it was created."
+        required: false
+        type: "integer"
+      - name: "include"
+        in: "query"
+        description: "Dash-delimited list of associated records to include. There's both `responses` and `reactions` that can be used. Example: `?include=responses-reactions`"
         required: false
         type: "string"
       - $ref: '#/parameters/xBrand'
