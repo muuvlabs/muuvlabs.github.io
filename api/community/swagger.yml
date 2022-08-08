@@ -1,0 +1,1907 @@
+swagger: "2.0"
+info:
+  description: "This Community Service allows for members to ask questions, answer questions, comment, and interact with experts."
+  version: "1.0.0"
+  title: "SEB Community Service API"
+  contact:
+    email: "micah@muuvlabs.com"
+host: "community.sebrands.com"
+basePath: "/"
+tags:
+- name: "activities"
+  description: "Admin-Only: The historical auditable records for updates"
+- name: "assets"
+  description: "Images and videos for posts"
+- name: "configs"
+  description: "The app config and translations"
+- name: "content_tags"
+  description: "Admins Only: Content Tags"
+- name: "flags"
+  description: "Flag as Inappropriate"
+- name: "posts"
+  description: "Questions, Answers, Articles, Comments"
+- name: "reactions"
+  description: "Likes"
+- name: "tag_groups"
+  description: "Tag groups"
+- name: "tags"
+  description: "Tags"
+schemes:
+- "https"
+paths:
+  /community/activities:
+    get:
+      tags:
+      - "activities"
+      summary: "Admins: Get all activities"
+      description: "Returns results for all the activities in the system"
+      operationId: "csActivitiesIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "affected_type"
+        in: "query"
+        description: "The model name for the resource that you want to see the activity of. Example: `Program`"
+        required: false
+        type: "string"
+      - name: "affected_id"
+        in: "query"
+        description: "The ID of the resource you want to see activity of. Use with the `affected_type` above."
+        required: false
+        type: "string"
+      - name: "user_id"
+        in: "query"
+        description: "The ID of the user you want to see activity of. This is for users in the SEB Admin tool."
+        required: false
+        type: "string"
+      - name: "member_id"
+        in: "query"
+        description: "The ID of the member you want to see activity of. This is for Member records, public users."
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ActivityResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+  /community/activities/{activityId}:
+    get:
+      tags:
+      - "activities"
+      summary: "Admins: Find activity by ID"
+      description: "Get a specific activity's info"
+      operationId: "csActivitiesShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "activityId"
+        in: "path"
+        description: "ID of activity to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Activity"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+  /community/assets:
+    get:
+      tags:
+      - "assets"
+      summary: "Admins: View all assets for a resource"
+      description: "For showing on the Files tab in SEB Admin"
+      operationId: "csAssetsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "assetable_type"
+        in: "query"
+        description: "The model name for the resource of which you want to see the assets. Example: `Post`"
+        required: false
+        type: "string"
+      - name: "assetable_id"
+        in: "query"
+        description: "The ID of the resource of which you want to see assets. Use with the `assetable_type` above."
+        required: false
+        type: "string"
+      - name: "asset_type"
+        in: "query"
+        description: "Show only assets of a specific type."
+        required: false
+        type: "string"
+        enum:
+        - "image"
+        - "video"
+        - "audio"
+        - "text"
+        - "document"
+      - name: "status"
+        in: "query"
+        description: "Status of the asset, like `uploading`"
+        required: false
+        type: "string"
+        enum:
+        - "uploading"
+        - "uploaded"
+        - "combining"
+        - "combined"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/AssetResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+    post:
+      tags:
+      - "assets"
+      summary: "Public: Upload an asset to a resource."
+      description: "To add an image or video to a Post"
+      operationId: "csAssetsCreate"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "asset_type"
+        in: "formData"
+        type: "string"
+        description: "Not really used right now. Possible values: `image` | `text` | `audio` | `video`"
+        enum:
+          - "image"
+          - "text"
+          - "audio"
+          - "video"
+          - "document"
+      - name: "slot"
+        in: "formData"
+        type: "string"
+        description: "Maps directly to the foreign key name, like `poster_id`. Only used for poster, so far. Possible values: `poster`"
+        enum:
+          - "poster"
+      - name: "assetable_type"
+        in: "formData"
+        type: "string"
+        description: "The model name that this asset goes to, like `Assignment`."
+      - name: "assetable_id"
+        in: "formData"
+        type: "string"
+        description: "The ID of the resources that this asset goes to, like `123`. Use with the 'assetable_id' field above."
+      - name: "file"
+        in: "formData"
+        type: "file"
+        description: "The file to upload."
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Asset"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/assets/{assetId}:
+    get:
+      tags:
+      - "assets"
+      summary: "Find asset by ID"
+      description: "Get a specific asset's info"
+      operationId: "csAssetShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "assetId"
+        in: "path"
+        description: "ID of asset to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Asset"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+  /community/assets/{assetId}/assign:
+    post:
+      tags:
+      - "assets"
+      summary: "Assign asset to the slot for the resource"
+      description: "Each asset has a `slot` that decides where it should be used. Resources (like Posts) have slots defined with a single asset for each slot. For example, a Post has one poster image, one video, and one transcript, defined by the `poster_id`, `video_id`, and `transcript_id` fields. Those IDs point to the assigned Asset for each. This request causes the asset to be set as the official slot for the associated resource."
+      operationId: "csAssetAssign"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "assetId"
+        in: "path"
+        description: "ID of asset to assign to the slot"
+        required: true
+        type: "integer"
+        format: "int64"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Asset"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+  /community/configs/app:
+    get:
+      tags:
+      - "configs"
+      summary: "App Config"
+      description: "This contains colors, fonts, and translations for a specific brand's app"
+      operationId: "configsApp"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Config"
+  /community/content_tags:
+    get:
+      tags:
+      - "content_tags"
+      summary: "Admins: Get all content tags"
+      description: "Returns results for all the content_tags in the system"
+      operationId: "csContentTagsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTagResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+    post:
+      tags:
+      - "content_tags"
+      summary: "Admins: Creates a content tag with form data"
+      description: "To add a new content tags"
+      operationId: "csContentTagsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "content_type"
+        in: "formData"
+        description: "Model name of the resource to be tagged."
+        required: false
+        type: "string"
+      - name: "content_id"
+        in: "formData"
+        description: "ID of the resource to be tagged."
+        required: false
+        type: "string"
+      - name: "tag_id"
+        in: "formData"
+        description: "The tag that should be added."
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/content_tags/{contentTagId}:
+    get:
+      tags:
+      - "content_tags"
+      summary: "Admins: Find content tag by ID"
+      description: "Get a specific content tag's info"
+      operationId: "csContentTagsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "contentTagId"
+        in: "path"
+        description: "ID of the content tag to show"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+    put:
+      tags:
+      - "content_tags"
+      summary: "Admins: Updates a content tag with form data"
+      description: "Join table for how things are tagged."
+      operationId: "csContentTagsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "contentTagId"
+        in: "path"
+        description: "ID of tag to update"
+        required: true
+        type: "string"
+      - name: "content_type"
+        in: "formData"
+        description: "Model name of the resource to be tagged."
+        required: false
+        type: "string"
+      - name: "content_id"
+        in: "formData"
+        description: "ID of the resource to be tagged."
+        required: false
+        type: "string"
+      - name: "tag_id"
+        in: "formData"
+        description: "The tag that should be added."
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+    delete:
+      tags:
+      - "content_tags"
+      summary: "Admins: Deletes a content tag"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "csContentTagsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "contentTagId"
+        in: "path"
+        description: "ID of content tag to delete"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/content_tags/{contentType}/{contentId}/{tagId}:
+    delete:
+      tags:
+      - "content_tags"
+      summary: "Admins: Deletes a content tag"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "csContentTagsDeleteAlternate"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "contentType"
+        in: "path"
+        description: "Content type of record, like 'Assignment'"
+        required: true
+        type: "string"
+      - name: "contentId"
+        in: "path"
+        description: "ID of content, like the Assignment ID"
+        required: true
+        type: "string"
+      - name: "tagId"
+        in: "path"
+        description: "ID of the tag that is assigned to the content"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ContentTag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/flags:
+    get:
+      tags:
+      - "flags"
+      summary: "Admins: Get all flags"
+      description: "Returns results for all the flags in the system"
+      operationId: "csFlagsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/FlagResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+    post:
+      tags:
+      - "flags"
+      summary: "Public: Creates a flag with form data"
+      description: "To add a new group of tags"
+      operationId: "csFlagsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "resource_type"
+        in: "formData"
+        type: "string"
+        description: "The model name that needs to be flagged, like `Post`."
+      - name: "resource_id"
+        in: "formData"
+        type: "string"
+        description: "The ID of the resources that needs to be flagged, like `123`. Use with the 'resource_type' field above."
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Flag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/flags/{flagId}:
+    get:
+      tags:
+      - "flags"
+      summary: "Admins: Find flag by ID"
+      description: "Get a specific flag's info"
+      operationId: "csFlagsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "flagId"
+        in: "path"
+        description: "ID of the flag to show"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Flag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+    put:
+      tags:
+      - "flags"
+      summary: "Admins: Updates a flag with form data"
+      description: "Change the status of a flag"
+      operationId: "csFlagsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "flagId"
+        in: "path"
+        description: "ID of flag to update"
+        required: true
+        type: "string"
+      - name: "status"
+        in: "formData"
+        type: "string"
+        description: "Moderation status of the flag. Possible values: `pending` | `allowed_content` | `denied_content`"
+        enum:
+          - "pending"
+          - "allowed_content"
+          - "denied_content"
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Flag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/posts:
+    get:
+      tags:
+      - "posts"
+      summary: "Public: Get all posts"
+      description: "Returns results for all the posts in the system"
+      operationId: "csPostsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/PostResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+    post:
+      tags:
+      - "posts"
+      summary: "Public: Creates a post with form data"
+      description: "To add a new post"
+      operationId: "csPostsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the tag group"
+        required: false
+        type: "string"
+      - name: "brand_ident"
+        in: "formData"
+        description: "Optional. The brand code for this, like `tbm`"
+        required: false
+        type: "string"
+      - name: "position"
+        in: "formData"
+        description: "Where should this tag group be placed in the Admin? If this is blank or missing, it will be placed at the end of the list."
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Post"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/posts/{postId}:
+    get:
+      tags:
+      - "posts"
+      summary: "Public: Find post by ID"
+      description: "Get a specific post's info"
+      operationId: "csPostsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "postId"
+        in: "path"
+        description: "ID of the tag group to show"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Post"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+    put:
+      tags:
+      - "posts"
+      summary: "Public: Updates a post with form data"
+      description: "Change the name or position of a tag group"
+      operationId: "csPostsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "postId"
+        in: "path"
+        description: "ID of tag group to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the tag group"
+        required: false
+        type: "string"
+      - name: "brand_ident"
+        in: "formData"
+        description: "Optional. The brand code for this, like `tbm`"
+        required: false
+        type: "string"
+      - name: "position"
+        in: "formData"
+        description: "Where should this tag group be placed in the Admin? If this is blank or missing, it will be placed at the end of the list."
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Post"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+    delete:
+      tags:
+      - "posts"
+      summary: "Public: Deletes a post"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "csPostsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "postId"
+        in: "path"
+        description: "ID of tag group to delete"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Post"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+
+
+  /community/reactions:
+    get:
+      tags:
+      - "reactions"
+      summary: "Public: Get all reactions"
+      description: "Returns results for all the reactions in the system"
+      operationId: "csReactionsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "members"
+        in: "query"
+        description: "Dash-delimited list of member ids to include. If this is blank, then it will include all of the brands that the user has read rights to. Example: `163-4573`"
+        required: false
+        type: "string"
+      - name: "posts"
+        in: "query"
+        description: "Dash-delimited list of post ids to include. If this is blank, then it will include all of the posts that the user has read rights to. Example: `6536-35632`"
+        required: false
+        type: "string"
+      - name: "reaction_types"
+        in: "query"
+        description: "Dash-delimited list of reactions to include. We only have 'like' right now, so this isn't needed. Example: `like`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ReactionResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+    post:
+      tags:
+      - "reactions"
+      summary: "Public: Creates a reaction with form data"
+      description: "To add a new reaction"
+      operationId: "csReactionsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "post_id"
+        in: "formData"
+        description: "ID of the Post to Like"
+        required: true
+        type: "integer"
+      - name: "reaction_type"
+        in: "formData"
+        description: "Optional. If not set, then it will use 'like'"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroup"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/reactions/{reactionId}:
+    get:
+      tags:
+      - "reactions"
+      summary: "Public: Find reaction by ID"
+      description: "Get a specific reaction's info"
+      operationId: "csReactionsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "reactionId"
+        in: "path"
+        description: "ID of the reaction to show"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Reaction"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+    delete:
+      tags:
+      - "reactions"
+      summary: "Public: Deletes a reaction"
+      description: "Removes a Like from a Post"
+      operationId: "csReactionsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "reactionId"
+        in: "path"
+        description: "ID of reaction to delete"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Reaction"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/reactions/{postId}/{reactionType}:
+    post:
+      tags:
+      - "reactions"
+      summary: "Public: Convenience path to create a reaction"
+      description: "To add a new reaction"
+      operationId: "csReactionsAltCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "postId"
+        in: "path"
+        description: "ID of the Post to Like"
+        required: true
+        type: "integer"
+      - name: "reactionType"
+        in: "path"
+        description: "Optional. If not set, then it will use 'like'"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroup"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+    delete:
+      tags:
+      - "reactions"
+      summary: "Public: Convenience path to delete a reaction"
+      description: "Removes a Like from a Post"
+      operationId: "csReactionsAltDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "postId"
+        in: "path"
+        description: "ID of the Post to Like"
+        required: true
+        type: "integer"
+      - name: "reactionType"
+        in: "path"
+        description: "Optional. If not set, then it will use 'like'"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Reaction"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/tag_groups:
+    get:
+      tags:
+      - "tag_groups"
+      summary: "Admins: Get all tag groups"
+      description: "Returns results for all the tag groups in the system"
+      operationId: "csTagGroupsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroupResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+    post:
+      tags:
+      - "tag_groups"
+      summary: "Admins: Creates a tag group with form data"
+      description: "To add a new group of tags"
+      operationId: "csTagGroupsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the tag group"
+        required: false
+        type: "string"
+      - name: "brand_ident"
+        in: "formData"
+        description: "Optional. The brand code for this, like `tbm`"
+        required: false
+        type: "string"
+      - name: "position"
+        in: "formData"
+        description: "Where should this tag group be placed in the Admin? If this is blank or missing, it will be placed at the end of the list."
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroup"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/tag_groups/{tagGroupId}:
+    get:
+      tags:
+      - "tag_groups"
+      summary: "Admins: Find tag group by ID"
+      description: "Get a specific tag group's info"
+      operationId: "csTagGroupsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagGroupId"
+        in: "path"
+        description: "ID of the tag group to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroup"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+    put:
+      tags:
+      - "tag_groups"
+      summary: "Admins: Updates a tag group with form data"
+      description: "Change the name or position of a tag group"
+      operationId: "csTagGroupsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagGroupId"
+        in: "path"
+        description: "ID of tag group to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the tag group"
+        required: false
+        type: "string"
+      - name: "brand_ident"
+        in: "formData"
+        description: "Optional. The brand code for this, like `tbm`"
+        required: false
+        type: "string"
+      - name: "position"
+        in: "formData"
+        description: "Where should this tag group be placed in the Admin? If this is blank or missing, it will be placed at the end of the list."
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroup"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+    delete:
+      tags:
+      - "tag_groups"
+      summary: "Admins: Deletes a tag group"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "csTagGroupsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagGroupId"
+        in: "path"
+        description: "ID of tag group to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagGroup"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/tags:
+    get:
+      tags:
+      - "tags"
+      summary: "Admins: Get all tags"
+      description: "Returns results for all the tags in the system"
+      operationId: "csTagsIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tag_groups"
+        in: "query"
+        description: "Dash-delimited list of tag group ids to include, as long as the user has read rights to the tag group. If this is blank, then it will include all of the tag groups that the user has read rights to. Example: `1-4-5`"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+    post:
+      tags:
+      - "tags"
+      summary: "Admins: Creates a tag with form data"
+      description: "To add a new tags"
+      operationId: "csTagsCreate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "formData"
+        description: "Name of the tag"
+        required: false
+        type: "string"
+      - name: "tag_group_id"
+        in: "formData"
+        description: "Tag group that this tag belongs to"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Tag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+  /community/tags/all:
+    get:
+      tags:
+      - "tags"
+      summary: "Public: Get all tags, with sections"
+      description: "This is a special request made to handle showing all tags to the user in the app, but with sections for Top 5, and alphabetical."
+      operationId: "csTagsAll"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/TagAll"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+  /community/tags/{tagId}:
+    get:
+      tags:
+      - "tags"
+      summary: "Admins: Find tag by ID"
+      description: "Get a specific tag's info"
+      operationId: "csTagsShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagId"
+        in: "path"
+        description: "ID of the tag to show"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Tag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+    put:
+      tags:
+      - "tags"
+      summary: "Admins: Updates a tag with form data"
+      description: "Change the name or position of a tag"
+      operationId: "csTagsUpdate"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagId"
+        in: "path"
+        description: "ID of tag to update"
+        required: true
+        type: "string"
+      - name: "name"
+        in: "formData"
+        description: "Name of the tag"
+        required: false
+        type: "string"
+      - name: "tag_group_id"
+        in: "formData"
+        description: "Tag group that this tag belongs to"
+        required: false
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Tag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+    delete:
+      tags:
+      - "tags"
+      summary: "Admins: Deletes a tag"
+      description: "Paranoid delete: sets the deleted_at to the timestamp"
+      operationId: "csTagsDelete"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "tagId"
+        in: "path"
+        description: "ID of tag to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Tag"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+        "405":
+          description: "Invalid input"
+parameters:
+  xBrand:
+    in: "header"
+    name: "x-cs-brand"
+    type: "string"
+    description: "The brand code, like `su` or `af`."
+  xJwt:
+    in: "header"
+    name: "x-cs-jwt"
+    type: "string"
+    description: "The JWT token that was passed into the SDK when initializing. We'll use this to verify the member is real and get the member ID for accessing their information from the remote system."
+  xLanguage:
+    in: "header"
+    name: "x-cs-language"
+    type: "string"
+    description: "The locale, with language and region codes, in the format of `language-region`, or just the language.\nExamples: `en-GB`, `en`, `es-AR`. Default is `en-US`."
+  xClient:
+    in: "header"
+    name: "x-cs-client"
+    type: "string"
+    description: "Follows the format of `app_platform_major_minor_patch`.\nExamples:\n`sdk_ios_0_5_1`\n`sudna_web_2022_30_3`"
+  xTimezone:
+    in: "header"
+    name: "x-cs-timezone"
+    type: "string"
+    description: "Timezone in the string format, like `America/Los_Angeles`. Default is `America/Chicago`."
+  xAppId:
+    in: "header"
+    name: "x-cs-app-id"
+    type: "string"
+    description: "Used if doing server-to-server communication. You will be provided an App ID for each environment."
+  xApiKey:
+    in: "header"
+    name: "x-cs-api-key"
+    type: "string"
+    description: "Used if doing server-to-server communication. You will be provided an API Key for eah environment."
+  xAdminJwt:
+    in: "header"
+    name: "x-jwt"
+    type: "string"
+    description: "The shared JWT token used across the SEB Admin tool."
+definitions:
+  ActivityResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Activity"
+  Activity:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Activity"
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      affected_type:
+        type: "string"
+      affected_id:
+        type: "integer"
+      action:
+        type: "string"
+      user_id:
+        type: "integer"
+      member_id:
+        type: "integer"
+      obj_json:
+        type: "string"
+      created_int:
+        type: "integer"
+  AssetResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Asset"
+  Asset:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Asset"
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      filename:
+        type: "string"
+      base_filename:
+        type: "string"
+      file_size:
+        type: "integer"
+      file_type:
+        type: "string"
+      asset_type:
+        type: "string"
+      slot:
+        type: "string"
+      assetable_type:
+        type: "string"
+      assetable_id:
+        type: "integer"
+      media:
+        type: "string"
+      uuid:
+        type: "string"
+  Config:
+    type: "object"
+    properties:
+      colors:
+        type: "object"
+        properties:
+          light_mode_colors:
+            type: "object"
+          dark_mode_colors:
+            type: "object"
+      features:
+        type: "object"
+      translations:
+        type: "object"
+  ContentTagResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/ContentTag"
+  ContentTag:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "ContentTag"
+      id:
+        type: "integer"
+        format: "int32"
+      content_type:
+        type: "string"
+      content_id:
+        type: "integer"
+        format: "int32"
+      tag_id:
+        type: "integer"
+        format: "int32"
+  FlagResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Flag"
+  Flag:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Flag"
+      id:
+        type: "integer"
+      member_id:
+        type: "integer"
+      resource_type:
+        type: "string"
+      resource_id:
+        type: "integer"
+      status:
+        type: "string"
+  PostResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Post"
+  Post:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Post"
+      id:
+        type: "integer"
+      member_id:
+        type: "integer"
+      resource_type:
+        type: "string"
+      resource_id:
+        type: "integer"
+      status:
+        type: "string"
+  ReactionResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Reaction"
+  Reaction:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Reaction"
+      id:
+        type: "integer"
+      member_id:
+        type: "integer"
+      resource_type:
+        type: "string"
+      resource_id:
+        type: "integer"
+      status:
+        type: "string"
+  TagAll:
+    type: "object"
+    properties:
+      sections:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            results:
+              type: "array"
+              items:
+                $ref: "#/definitions/TagWithCount"
+  TagResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Tag"
+  Tag:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Tag"
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      tag_group_id:
+        type: "integer"
+      visibility:
+        type: "string"
+      is_featured:
+        type: "boolean"
+      member_id:
+        type: "integer"
+      count:
+        type: "integer"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+  TagSimple:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+  TagWithCount:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      count:
+        type: "integer"
+  TagGroupResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagGroup"
+  TagGroup:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Tag"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      position:
+        type: "integer"
+        format: "int32"
+      brand_id:
+        type: "integer"
+        format: "int32"
+      brand_ident:
+        type: "string"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
+      tags:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagSimple"
+  TagGroupSimple:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      tags:
+        type: "array"
+        items:
+          $ref: "#/definitions/TagSimple"
