@@ -2001,12 +2001,8 @@ definitions:
         type: "integer"
       member_id:
         type: "integer"
-      resource_type:
-        type: "string"
-      resource_id:
+      post_id:
         type: "integer"
-      status:
-        type: "string"
   TagAll:
     type: "object"
     properties:
