@@ -1932,6 +1932,15 @@ definitions:
         type: "integer"
       updated_int:
         type: "integer"
+      pillar:
+        type: "object"
+        properties:
+          name:
+            type: "string"
+          label_background_color:
+            type: "string"
+          label_text_color:
+            type: "string"
       response_ids:
         type: "array"
         items:
