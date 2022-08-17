@@ -18,6 +18,10 @@ tags:
   description: "Admins Only: Content Tags"
 - name: "flags"
   description: "Flag as Inappropriate"
+- name: "me"
+  description: "Public: Related to current member"
+- name: "members"
+  description: "Info and settings about the members"
 - name: "posts"
   description: "Questions, Answers, Articles, Comments"
 - name: "reactions"
@@ -664,6 +668,117 @@ paths:
           description: "Not found"
         "405":
           description: "Invalid input"
+  /community/members/me:
+    get:
+      tags:
+      - "me"
+      summary: "Public: Show the current member"
+      description: "This will look at the JWT to give the info for the currently logged-in member."
+      operationId: "csMeShow"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Member"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+  /community/members:
+    get:
+      tags:
+      - "members"
+      summary: "Get all public members"
+      description: "Returns results for all the members in the system"
+      operationId: "csMembersIndex"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "enabled"
+        in: "query"
+        description: "For viewing the members that are enabled or not, or all members. Default is to show all members."
+        required: false
+        type: "string"
+        enum:
+        - "all"
+        - "1"
+        - "0"
+        default: "all"
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MemberResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+  /pe/members/{memberId}:
+    get:
+      tags:
+      - "members"
+      summary: "Find member by ID"
+      description: "Get a specific member's info"
+      operationId: "csMembersShow"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "memberId"
+        in: "path"
+        description: "ID of member to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Member"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
   /community/posts:
     get:
       tags:
@@ -677,6 +792,11 @@ paths:
       - name: "term"
         in: "query"
         description: "Search terms for finding posts, usually questions."
+        required: false
+        type: "string"
+      - name: "post_type"
+        in: "query"
+        description: "The type of post that you want to see. Example: `?post_type=question`"
         required: false
         type: "string"
       - name: "brands"
@@ -1857,6 +1977,55 @@ definitions:
         type: "integer"
       status:
         type: "string"
+  MemberResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Member"
+  Member:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Member"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      subline:
+        type: "string"
+      avatar_id:
+        type: "integer"
+      avatar_url:
+        type: "string"
+      thumbnail_url:
+        type: "string"
+      pillar:
+        type: "object"
+        properties:
+          id:
+            type: "integer"
+          name:
+            type: "string"
+          label_background_color:
+            type: "string"
+          label_text_color:
+            type: "string"
   PostResults:
     type: "object"
     properties:
@@ -1935,14 +2104,14 @@ definitions:
       pillar:
         type: "object"
         properties:
-          id:
-            type: "integer"
           name:
             type: "string"
           label_background_color:
             type: "string"
           label_text_color:
             type: "string"
+      member:
+        $ref: "#/definitions/Member"
       response_ids:
         type: "array"
         items:
