@@ -1578,11 +1578,6 @@ paths:
         description: "Tags created by this member ID. Also allows for `me` instead of the ID, if you need the current member's tags. Example: `?member_id=me`"
         required: false
         type: "string"
-      - name: "is_featured"
-        in: "query"
-        description: "For showing Featured Tags, or excluding them. Use `1` to show featured, `0` to exclude featured, or remove to show all."
-        required: false
-        type: "string"
       - name: "page"
         in: "query"
         description: "The page of results to show. Default is 1"
@@ -1626,6 +1621,16 @@ paths:
         description: "Name of the tag"
         required: false
         type: "string"
+      - name: "visibility"
+        in: "formData"
+        description: "Admin only. For approving tags to be seen in the app."
+        required: false
+        type: "string"
+        enum:
+        - "pending"
+        - "denied"
+        - "published"
+        - "unpublished"
       - name: "tag_group_id"
         in: "formData"
         description: "Tag group that this tag belongs to"
@@ -1718,6 +1723,16 @@ paths:
         description: "Name of the tag"
         required: false
         type: "string"
+      - name: "visibility"
+        in: "formData"
+        description: "Admin only. For approving tags to be seen in the app."
+        required: false
+        type: "string"
+        enum:
+        - "pending"
+        - "denied"
+        - "published"
+        - "unpublished"
       - name: "tag_group_id"
         in: "formData"
         description: "Tag group that this tag belongs to"
@@ -2247,11 +2262,9 @@ definitions:
         type: "integer"
       visibility:
         type: "string"
-      is_featured:
-        type: "boolean"
       member_id:
         type: "integer"
-      count:
+      posts_count:
         type: "integer"
       created_int:
         type: "integer"
