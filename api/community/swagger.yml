@@ -809,6 +809,11 @@ paths:
         description: "Posts created by this member ID. Also allows for `me` instead of the ID, if you need the current member's posts. Example: `?member_id=me`"
         required: false
         type: "string"
+      - name: "parent_id"
+        in: "query"
+        description: "Posts that were in response to this other Post ID. Used for finding the answers to a specific question, or comments to a specific article."
+        required: false
+        type: "string"
       - name: "is_reel"
         in: "query"
         description: "For showing just Reels, or excluding them. Use `1` to show only reels, `0` to exclude reels, or remove to show all."
