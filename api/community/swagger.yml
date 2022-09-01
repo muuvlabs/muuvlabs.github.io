@@ -744,7 +744,7 @@ paths:
           description: "Unauthorized"
         "403":
           description: "Forbidden"
-  /pe/members/{memberId}:
+  /community/members/{memberId}:
     get:
       tags:
       - "members"
@@ -846,7 +846,7 @@ paths:
         type: "string"
       - name: "include"
         in: "query"
-        description: "Dash-delimited list of associated records to include. There's both `responses` and `reactions` that can be used. Example: `?include=responses-reactions`"
+        description: "Dash-delimited list of associated records to include. There's `responses`, `reactions`, and `flags` that can be used. Example: `?include=responses-reactions-flags`"
         required: false
         type: "string"
       - name: "sort"
@@ -952,7 +952,7 @@ paths:
         type: "integer"
       - name: "include"
         in: "query"
-        description: "Dash-delimited list of associated records to include. There's both `responses` and `reactions` that can be used. Example: `?include=responses-reactions`"
+        description: "Dash-delimited list of associated records to include. There's `responses`, `reactions`, and `flags` that can be used. Example: `?include=responses-reactions-flags`"
         required: false
         type: "string"
       - $ref: '#/parameters/xBrand'
@@ -993,7 +993,7 @@ paths:
         type: "string"
       - name: "include"
         in: "query"
-        description: "Dash-delimited list of associated records to include. There's both `responses` and `reactions` that can be used. Example: `?include=responses-reactions`"
+        description: "Dash-delimited list of associated records to include. There's `responses`, `reactions`, and `flags` that can be used. Example: `?include=responses-reactions-flags`"
         required: false
         type: "string"
       - $ref: '#/parameters/xBrand'
@@ -1073,7 +1073,7 @@ paths:
         type: "integer"
       - name: "include"
         in: "query"
-        description: "Dash-delimited list of associated records to include. There's both `responses` and `reactions` that can be used. Example: `?include=responses-reactions`"
+        description: "Dash-delimited list of associated records to include. There's `responses`, `reactions`, and `flags` that can be used. Example: `?include=responses-reactions-flags`"
         required: false
         type: "string"
       - $ref: '#/parameters/xBrand'
@@ -2130,6 +2130,16 @@ definitions:
         type: "array"
         items:
           $ref: "#/definitions/Reaction"
+      flag_ids:
+        type: "array"
+        items:
+          type: "integer"
+      flag:
+        type: "array"
+        items:
+          $ref: "#/definitions/Flag"
+      responses_count:
+        type: "integer"
       comment_count:
         type: "integer"
       liked_count:
