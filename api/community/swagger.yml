@@ -568,6 +568,14 @@ paths:
         description: "The reason that a flag was approved. One of: `inappropriate`, `spam`, `ad`, `harassing`, `illegal`"
         required: false
         type: "string"
+      - name: "sort"
+        in: "query"
+        description: "Sorting by a specific field. These look like SQL, but are predetermined strings that are allowed. Default is `created_at-ASC`"
+        required: false
+        type: "string"
+        enum:
+          - "created_at-DESC"
+          - "created_at-ASC"
       - name: "page"
         in: "query"
         description: "The page of results to show. Default is 1"
@@ -740,6 +748,11 @@ paths:
       - name: "brands"
         in: "query"
         description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
+        required: false
+        type: "string"
+      - name: "member_type"
+        in: "query"
+        description: "Dash-delimited list of member_types to include. Example: `expert_coach-gym_member`"
         required: false
         type: "string"
       - name: "enabled"
