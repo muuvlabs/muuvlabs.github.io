@@ -2173,6 +2173,8 @@ definitions:
         type: "integer"
       is_liked:
         type: "boolean"
+      is_flagged:
+        type: "boolean"
       pillar:
         type: "object"
         properties:
