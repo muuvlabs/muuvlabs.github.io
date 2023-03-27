@@ -3919,11 +3919,10 @@ paths:
         type: "string"
       - name: "is_completed"
         in: "query"
-        description: "Boolean for if you want to show only completed tasks, or only incomplete tasks."
+        description: "Set to `1` to use. For if you want to show only completed tasks, or only incomplete tasks."
         required: false
         type: "number"
         enum:
-        - "0"
         - "1"
       - name: "task_week"
         in: "query"
@@ -3932,27 +3931,24 @@ paths:
         type: "string"
       - name: "is_future"
         in: "query"
-        description: "Boolean for only showing tasks in the future (not today)."
+        description: "Set to `1` to use. For only showing tasks in the future (not today)."
         required: false
         type: "number"
         enum:
-        - "0"
         - "1"
       - name: "is_today"
         in: "query"
-        description: "Boolean for only showing tasks for today."
+        description: "Set to `1` to use. For only showing tasks for today."
         required: false
         type: "number"
         enum:
-        - "0"
         - "1"
       - name: "is_past"
         in: "query"
-        description: "Boolean for only showing tasks before today."
+        description: "Set to `1` to use. For only showing tasks before today."
         required: false
         type: "number"
         enum:
-        - "0"
         - "1"
       - name: "completed_start"
         in: "query"
