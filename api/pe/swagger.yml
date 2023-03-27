@@ -3860,6 +3860,110 @@ paths:
       produces:
       - "application/json"
       parameters:
+      - name: "brands"
+        in: "query"
+        description: "Dash-delimited list of brands to include. Example: `af-su`"
+        required: false
+        type: "string"
+      - name: "programs"
+        in: "query"
+        description: "Dash-delimited list of program IDs to include. Example: `2-5-7`"
+        required: false
+        type: "string"
+      - name: "plan_programs"
+        in: "query"
+        description: "Dash-delimited list of PlanProgram IDs to include. Example: `2-5-7`"
+        required: false
+        type: "string"
+      - name: "pillars"
+        in: "query"
+        description: "Dash-delimited list of pillar IDs to include. Example: `2-3`"
+        required: false
+        type: "string"
+      - name: "actions"
+        in: "query"
+        description: "Dash-delimited list of actions to include. Example: `none-workout_af`"
+        required: false
+        type: "string"
+      - name: "sort"
+        in: "query"
+        description: "The field that you want to sort by."
+        required: false
+        type: "string"
+        enum:
+        - "task_int-ASC"
+        - "task_week-ASC"
+        - "task_week-DESC"
+        - "task_date-ASC"
+        - "task_date-DESC"
+        - "task_at-ASC"
+        - "task_at-DESC"
+        - "created_at-ASC"
+        - "created_at-DESC"
+        - "completed_at-ASC"
+        - "completed_at-DESC"
+      - name: "brand_ident"
+        in: "query"
+        description: "Specific brand_ident to use when finding tasks for a specific member. Used with the `brand_user_id` param."
+        required: false
+        type: "string"
+      - name: "brand_user_id"
+        in: "query"
+        description: "Specific user ID from the brand given in the `brand_ident` param, to find tasks for a specific member."
+        required: false
+        type: "string"
+      - name: "exclude_actions"
+        in: "query"
+        description: "Dash-delimited list of actions to exclude. Example: `daily_log-weekly_check_in`"
+        required: false
+        type: "string"
+      - name: "is_completed"
+        in: "query"
+        description: "Boolean for if you want to show only completed tasks, or only incomplete tasks."
+        required: false
+        type: "number"
+        enum:
+        - "0"
+        - "1"
+      - name: "task_week"
+        in: "query"
+        description: "Date string for the Monday for the week, to see tasks in that specific week. Example: `2023-03-27`"
+        required: false
+        type: "string"
+      - name: "is_future"
+        in: "query"
+        description: "Boolean for only showing tasks in the future (not today)."
+        required: false
+        type: "number"
+        enum:
+        - "0"
+        - "1"
+      - name: "is_today"
+        in: "query"
+        description: "Boolean for only showing tasks for today."
+        required: false
+        type: "number"
+        enum:
+        - "0"
+        - "1"
+      - name: "is_past"
+        in: "query"
+        description: "Boolean for only showing tasks before today."
+        required: false
+        type: "number"
+        enum:
+        - "0"
+        - "1"
+      - name: "completed_start"
+        in: "query"
+        description: "Timestamp, milliseconds since epoch, for a starting time to show competed tasks, based on when it was completed."
+        required: false
+        type: "string"
+      - name: "completed_stop"
+        in: "query"
+        description: "Timestamp, milliseconds since epoch, for an ending time to show competed tasks, based on when it was completed."
+        required: false
+        type: "string"
       - name: "page"
         in: "query"
         description: "The page of results to show. Default is 1"
