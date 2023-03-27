@@ -3919,10 +3919,11 @@ paths:
         type: "string"
       - name: "is_completed"
         in: "query"
-        description: "Set to `1` to use. For if you want to show only completed tasks, or only incomplete tasks."
+        description: "Boolean. For if you want to show only completed tasks, or only incomplete tasks."
         required: false
         type: "number"
         enum:
+        - "0"
         - "1"
       - name: "task_week"
         in: "query"
