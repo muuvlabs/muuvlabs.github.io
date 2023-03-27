@@ -3932,7 +3932,7 @@ paths:
         type: "string"
       - name: "is_future"
         in: "query"
-        description: "Set to `1` to use. For only showing tasks in the future (not today)."
+        description: "Set to `1` to use. For only showing tasks that end in the future."
         required: false
         type: "number"
         enum:
