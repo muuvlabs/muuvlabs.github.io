@@ -2,10 +2,10 @@ swagger: "2.0"
 info:
   description: "This Users service authenticates the user by email, accepts verification codes, and handles the ability to create or edit existing users.\n\nThe session will be saved through normal cookies sent by the server."
   version: "1.0.0"
-  title: "SEB Admin Users API"
+  title: "Admin Users API"
   contact:
-    email: "micah@muuvlabs.com"
-host: "referrals.sebrands.com"
+    email: "micah@vi.co"
+host: "clientname.vi.co"
 basePath: "/"
 tags:
 - name: "auth"
@@ -380,10 +380,10 @@ definitions:
           properties:
             ident:
               type: "string"
-              default: "af"
+              default: "ba"
             name:
               type: "string"
-              default: "Anytime Fitness"
+              default: "Brand A"
       services:
         type: "array"
         items:
@@ -391,10 +391,10 @@ definitions:
           properties:
             ident:
               type: "string"
-              default: "vhs"
+              default: "ge"
             name:
               type: "string"
-              default: "Video Hosting"
+              default: "Gamification Engine"
   Sent:
     type: "object"
     properties:
