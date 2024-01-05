@@ -72,6 +72,8 @@ tags:
   description: "Config for the apps"
 - name: "events"
   description: "Event data for a user, like steps updates"
+- name: "goals"
+  description: "Customer-defined goals that a user can win"
 - name: "users"
   description: "Info and settings about the users"
 - name: "webhooks"
@@ -582,6 +584,166 @@ paths:
           description: "Forbidden"
         "404":
           description: "Not found"
+  /ge/goals:
+    get:
+      tags:
+      - "goals"
+      summary: "List Goals"
+      description: "Returns results for all the goals"
+      parameters:
+      - name: "page"
+        in: "query"
+        description: "The page of results to show. Default is 1"
+        required: false
+        type: "string"
+      - name: "per_page"
+        in: "query"
+        description: "The number of results to show for each page. Default is 10"
+        required: false
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/GoalResults"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+    post:
+      tags:
+      - "goals"
+      summary: "Admins: Create Goal"
+      description: "For creating a new goal"
+      parameters:
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Goal"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+  /ge/goals/{goalId}:
+    get:
+      tags:
+      - "goals"
+      summary: "Show Goal by ID"
+      description: "Display info for a specific Goal"
+      parameters:
+      - name: "goalId"
+        in: "path"
+        description: "ID of the Goal to return"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Goal"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+    put:
+      tags:
+      - "goals"
+      summary: "Admins: Update Goal"
+      description: "Change the editable settings of a Goal"
+      parameters:
+      - name: "goalId"
+        in: "path"
+        description: "ID of the Goal to update"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          type: "object"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Goal"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
+    delete:
+      tags:
+      - "goals"
+      summary: "Admins: Delete Goal"
+      description: "For deleting a Goal"
+      parameters:
+      - name: "goalId"
+        in: "path"
+        description: "ID of the Goal to delete"
+        required: true
+        type: "string"
+      - $ref: '#/parameters/xBrand'
+      - $ref: '#/parameters/xJwt'
+      - $ref: '#/parameters/xLanguage'
+      - $ref: '#/parameters/xClient'
+      - $ref: '#/parameters/xTimezone'
+      - $ref: '#/parameters/xAppId'
+      - $ref: '#/parameters/xApiKey'
+      - $ref: '#/parameters/xAdminJwt'
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Goal"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not found"
   /ge/users:
     get:
       tags:
@@ -1001,6 +1163,51 @@ definitions:
         type: "object"
       translations:
         type: "object"
+  GoalResults:
+    type: "object"
+    properties:
+      page:
+        type: "integer"
+        format: "int32"
+      per_page:
+        type: "integer"
+        format: "int32"
+      total:
+        type: "integer"
+        format: "int32"
+      total_pages:
+        type: "integer"
+        format: "int32"
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/Goal"
+  Goal:
+    type: "object"
+    properties:
+      class_name:
+        type: "string"
+        default: "Goal"
+      id:
+        type: "integer"
+        format: "int32"
+      name:
+        type: "string"
+      description:
+        type: "string"
+      poster_id:
+        type: "integer"
+        format: "int32"
+      poster_url:
+        type: "string"
+      rules:
+        type: "object"
+      created_int:
+        type: "integer"
+        format: "int32"
+      updated_int:
+        type: "integer"
+        format: "int32"
   UserResults:
     type: "object"
     properties:
@@ -1031,12 +1238,7 @@ definitions:
         format: "int32"
       name:
         type: "string"
-      brand_id:
-        type: "integer"
-        format: "int32"
       brand_ident:
-        type: "string"
-      brand_name:
         type: "string"
       brand_user_id:
         type: "string"
@@ -1046,6 +1248,17 @@ definitions:
         type: "string"
       last_name:
         type: "string"
+      timezone:
+        type: "string"
+      language:
+        type: "string"
+      points:
+        type: "integer"
+        format: "int32"
+      settings:
+        type: "object"
+      activity:
+        type: "object"
       created_int:
         type: "integer"
         format: "int32"

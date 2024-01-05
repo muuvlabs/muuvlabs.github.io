@@ -85,7 +85,7 @@ paths:
         type: "string"
       - name: "user_id"
         in: "query"
-        description: "The ID of the user you want to see activity of. This is for users in the SEB Admin tool."
+        description: "The ID of the user you want to see activity of. This is for users in the Admin tool."
         required: false
         type: "string"
       - name: "member_id"
