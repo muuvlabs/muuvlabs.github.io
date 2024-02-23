@@ -9,7 +9,7 @@ host: "pe.sebrands.com"
 basePath: "/"
 tags:
 - name: "activities"
-  description: "Admins Only: Activity Info"
+  description: "Activity Info"
 - name: "assets"
   description: "Admins Only: Asset uploading"
 - name: "assignments"
@@ -118,7 +118,7 @@ paths:
     get:
       tags:
       - "activities"
-      summary: "Admins: Find activity by ID"
+      summary: "Bacon"
       description: "Get a specific activity's info"
       operationId: "peActivitiesShow"
       produces:
@@ -4522,6 +4522,8 @@ definitions:
       id:
         type: "integer"
       name:
+        type: "string"
+      bacon:
         type: "string"
       affected_type:
         type: "string"
