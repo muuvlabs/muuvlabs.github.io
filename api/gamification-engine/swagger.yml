@@ -15,7 +15,7 @@ info:
     authentication tokens as well as client info.
 
 
-    <table><tr><th>Header</th><th>Description</th></tr><tr><td><b>x-ge-api-key</b></td><td>Used
+    <table><tr><th style="text-align: left; font-size: 1.1em; color: #666">Header</th><th style="text-align: left; font-size: 1.1em; color: #666">Description</th></tr><tr><td><b>x-ge-api-key</b></td><td>Used
     if doing server-to-server communication. You will be provided an API Key for
     each environment.</td></tr><tr><td><b>x-ge-app-id</b></td><td>Used if doing
     server-to-server communication. You will be provided an App ID for each
