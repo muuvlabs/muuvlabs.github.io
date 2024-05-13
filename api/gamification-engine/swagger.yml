@@ -1,1314 +1,2427 @@
-swagger: "2.0"
+openapi: 3.0.3
 info:
-  description: "This API covers the Gamification Engine, which includes the Loyalty, Streaks, Badges, etc."
-  version: "1.0.0"
-  title: "Gamification Engine API"
-  contact:
-    email: "micah@vi.co"
-host: "clientname.vi.co"
-basePath: "/"
-schemes:
-  - https
-produces:
-  - application/json
-consumes:
-  - application/json
-securityDefinitions:
-  jwt:
-    type: "apiKey"
-    name: "x-ge-jwt"
-    in: "header"
-security:
-- jwt: []
-parameters:
-  xBrand:
-    in: "header"
-    name: "x-ge-brand"
-    type: "string"
-    description: "The brand code, like `su` or `af`."
-  xJwt:
-    in: "header"
-    name: "x-ge-jwt"
-    type: "string"
-    description: "The JWT token that was passed into the SDK when initializing. We'll use this to verify the member is real and get the member ID for accessing their information from the remote system."
-  xLanguage:
-    in: "header"
-    name: "x-ge-language"
-    type: "string"
-    description: "The locale, with language and region codes, in the format of `language-region`, or just the language.\nExamples: `en-GB`, `en`, `es-AR`. Default is `en-US`."
-  xClient:
-    in: "header"
-    name: "x-ge-client"
-    type: "string"
-    description: "Follows the format of `app_platform_major_minor_patch`.\nExamples:\n`sdk_ios_0_5_1`\n`sudna_web_2022_30_3`"
-  xTimezone:
-    in: "header"
-    name: "x-ge-timezone"
-    type: "string"
-    description: "Timezone in the string format, like `America/Los_Angeles`. Default is `America/Chicago`."
-  xAppId:
-    in: "header"
-    name: "x-ge-app-id"
-    type: "string"
-    description: "Used if doing server-to-server communication. You will be provided an App ID for each environment."
-  xApiKey:
-    in: "header"
-    name: "x-ge-api-key"
-    type: "string"
-    description: "Used if doing server-to-server communication. You will be provided an API Key for eah environment."
-  xAdminJwt:
-    in: "header"
-    name: "x-jwt"
-    type: "string"
-    description: "The shared JWT token used across the Admin tool."
+  title: Tivity Gamification Engine API Reference
+  description: >-
+    Welcome to the Highly Interactive API Reference for the Tivity Gamification
+    Engine.
+
+
+    ---
+
+
+    ### Custom Headers
+
+    All requests support the following custom headers. These are used for
+    authentication tokens as well as client info.
+
+
+    <table><tr><th>Header</th><th>Description</th></tr><tr><td><b>x-ge-api-key</b></td><td>Used
+    if doing server-to-server communication. You will be provided an API Key for
+    each environment.</td></tr><tr><td><b>x-ge-app-id</b></td><td>Used if doing
+    server-to-server communication. You will be provided an App ID for each
+    environment.</td></tr><tr><td><b>x-ge-brand</b></td><td>The brand code, like
+    <code>ba</code> or
+    <code>ss</code>.</td></tr><tr><td><b>x-ge-client</b></td><td>The app/service
+    that is making the request. Follows the format of
+    <code>app_platform_major_minor_patch</code>.<br><br>Examples:
+    <code>sdk_ios_0_5_1</code>,
+    <code>sudna_web_2022_30_3</code></td></tr><tr><td><b>x-ge-jwt</b></td><td>The
+    JWT token that was passed into the SDK when initializing. We'll use this to
+    verify the member is real and get the member ID for accessing their
+    information from the remote
+    system.</td></tr><tr><td><b>x-ge-language</b></td><td>The locale, with
+    language and region codes, in the format of <code>language-region</code>, or
+    just the language.<br><br>Examples: <code>en-GB</code>, <code>en</code>,
+    <code>es-AR</code>. Default is
+    <code>en-US</code>.</td></tr><tr><td><b>x-ge-timezone</b></td><td>Timezone
+    in the string format, like <code>America/Los_Angeles</code>. Default is
+    <code>America/Chicago</code>.</td></tr></table>
+  version: 1.1.0
+servers:
+  - url: https://dev-transform.vi.co/tivity/ge
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-ge-api-key
+      description: >-
+        Used if doing server-to-server communication. You will be provided an
+        API Key for each environment.
+    jwtAuth:
+      type: apiKey
+      in: header
+      name: x-ge-jwt
+      description: >-
+        The JWT token that was passed into the SDK when initializing. We'll use
+        this to verify the member is real and get the member ID for accessing
+        their information from the remote system.
+  schemas:
+    DefaultPagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: The current page number
+          example: 1
+        per_page:
+          type: integer
+          description: The amount of records per page
+          example: 10
+        total:
+          type: integer
+          description: The total amount of records
+          example: 52
+        total_pages:
+          type: integer
+          description: Total amount of pages
+          example: 6
+    TypeDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          example: type_name
+        details:
+          type: object
+          example:
+            key: value
+      required:
+        - type
+        - details
+    ActionResult:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/ActionDisplay'
+    ActionDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: Action
+        id:
+          type: integer
+          example: 1
+        ident:
+          type: string
+          example: video_watched
+        created_int:
+          type: integer
+          example: 1715355515996
+        updated_int:
+          type: integer
+          example: 1715355515996
+    AssetResult:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/AssetDisplay'
+    AssetDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: Asset
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Burnalong Logo
+        filename:
+          type: string
+          example: /files/somewhere/burnalong_logo.png
+        base_filename:
+          type: string
+          example: burnalong_logo.png
+        url:
+          type: string
+          example: >-
+            https://example.com/files/somewhere/f7b1b1b0-7b3b-4b3b-8b3b-3b3b3b3b3b3b/burnalong_logo.png
+        file_type:
+          type: string
+          example: image/png
+        slot:
+          type: string
+          example: icon
+        assetable_type:
+          type: string
+          example: Brand
+        assetable_id:
+          type: string
+          example: '1'
+        uuid:
+          type: string
+          example: f7b1b1b0-7b3b-4b3b-8b3b-3b3b3b3b3b3b
+        created_int:
+          type: integer
+          example: 1715355515996
+        updated_int:
+          type: integer
+          example: 1715355515996
+    AssetCreateRequest:
+      type: object
+      properties:
+        slot:
+          type: string
+          description: >-
+            Maps directly to the foreign key name, like `poster_id`. Only used
+            for poster, so far. Possible values: `poster`
+        assetable_type:
+          type: string
+          description: The model name that this asset goes to, like `Goal`.
+        assetable_id:
+          type: integer
+          description: >-
+            The ID of the resources that this asset goes to, like `123`. Use
+            with the 'assetable_id' field above.
+        file:
+          type: string
+          format: binary
+          description: The file to upload.
+    BrandResults:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/BrandDisplay'
+    BrandDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: Brand
+        id:
+          type: integer
+          description: The auto-generated id of the brand.
+          example: 1
+        ident:
+          type: string
+          description: The unique identifier of the brand.
+          example: ba
+        name:
+          type: string
+          description: The name of the brand.
+          example: Burnalong
+        is_active:
+          type: boolean
+          description: The active status of the brand.
+        config:
+          type: object
+          description: The configuration settings for the brand.
+        created_int:
+          type: integer
+          example: 1715355515996
+        updated_int:
+          type: integer
+          example: 1715355515996
+    BrandUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the brand.
+        is_active:
+          type: boolean
+          description: Specifies if the brand is active. Defaults to true.
+          default: true
+        config:
+          type: object
+          description: Configuration settings for the brand.
+          default: {}
+    BrandActionResult:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/BrandActionDisplay'
+    BrandActionDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: BrandAction
+        id:
+          type: integer
+          example: 1
+        action_id:
+          type: integer
+          example: 123
+        action_ident:
+          type: integer
+          example: video_watched
+        brand_ident:
+          type: string
+          example: ba
+        organization_id:
+          type: integer
+          example: 456
+        name:
+          type: string
+          example: Video Watched
+        description:
+          type: string
+          example: Watch one of our many videos!
+        icon_id:
+          type: integer
+          example: 1
+        icon_url:
+          type: string
+          example: https://example.com/icon.png
+        data_schema:
+          type: object
+          additionalProperties: true
+        created_int:
+          type: integer
+          example: 1715355515996
+        updated_int:
+          type: integer
+          example: 1715355515996
+    BrandActionCreateRequest:
+      type: object
+      required:
+        - action_ident
+        - brand_ident
+      properties:
+        action_ident:
+          type: string
+          description: >-
+            Enter the identifier of the action associated with this brand
+            action.
+        brand_ident:
+          type: string
+          description: The identifier of the brand associated with this action.
+        organization_id:
+          type: integer
+          description: The ID of the organization associated with this brand action.
+        name:
+          type: string
+          description: The name of the brand action.
+        description:
+          type: string
+          description: A description of the brand action.
+        icon_id:
+          type: integer
+          description: >-
+            Foreign key to the Assets table, for the icon that represents this
+            action.
+        data_schema:
+          type: object
+          description: The schema of the data associated with this brand action.
+          additionalProperties: true
+    BrandActionUpdateRequest:
+      type: object
+      properties:
+        organization_id:
+          type: integer
+          description: The ID of the organization associated with this brand action.
+        name:
+          type: string
+          description: The name of the brand action.
+        description:
+          type: string
+          description: A description of the brand action.
+        icon_id:
+          type: integer
+          description: >-
+            Foreign key to the Assets table, for the icon that represents this
+            action.
+        data_schema:
+          type: object
+          description: The schema of the data associated with this brand action.
+          additionalProperties: true
+    BrandGoalTypeResult:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/BrandGoalTypeDisplay'
+    BrandGoalTypeDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: BrandGoalType
+        id:
+          type: integer
+          example: 1
+        goal_type_id:
+          type: integer
+          example: 123
+        goal_type_ident:
+          type: string
+          example: streak
+        brand_ident:
+          type: string
+          example: ba
+        organization_id:
+          type: integer
+          example: 456
+        name:
+          type: string
+          example: Streak
+        description:
+          type: string
+          example: Do a series of things every day, week, or month.
+        data_schema:
+          type: object
+          additionalProperties: true
+        created_int:
+          type: integer
+          example: 1715355515996
+        updated_int:
+          type: integer
+          example: 1715355515996
+    BrandGoalTypeCreateRequest:
+      type: object
+      required:
+        - goal_type_ident
+        - brand_ident
+      properties:
+        goal_type_ident:
+          type: string
+          description: String identifier for the type of goal, like 'streak'.
+        brand_ident:
+          type: string
+          description: The identifier of the brand associated with this action.
+        organization_id:
+          type: integer
+          description: The ID of the organization associated with this brand action.
+        name:
+          type: string
+          description: The name of the brand action.
+        description:
+          type: string
+          description: A description of the brand action.
+        data_schema:
+          type: object
+          description: The schema of the data associated with this brand action.
+          additionalProperties: true
+    BrandGoalTypeUpdateRequest:
+      type: object
+      properties:
+        organization_id:
+          type: integer
+          description: The ID of the organization associated with this brand action.
+        name:
+          type: string
+          description: The name of the brand action.
+        description:
+          type: string
+          description: A description of the brand action.
+        data_schema:
+          type: object
+          description: The schema of the data associated with this brand action.
+          additionalProperties: true
+    GoalResult:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/GoalDisplay'
+    GoalDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: Goal
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Daily Streak
+        description:
+          type: string
+          example: >-
+            Take a variety of actions throughout the Burnalong app each day to
+            keep your streak!
+        goal_type_id:
+          type: integer
+          example: 2
+        brand_ident:
+          type: string
+          example: ba
+        organization_id:
+          type: integer
+          example: 3
+        is_active:
+          type: boolean
+        icon_id:
+          type: integer
+          example: 1
+        icon_url:
+          type: string
+          example: https://example.com/icon.png
+        created_int:
+          type: integer
+          example: 1715355515996
+        updated_int:
+          type: integer
+          example: 1715355515996
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/TypeDetails'
+        reward:
+          type: array
+          items:
+            $ref: '#/components/schemas/TypeDetails'
+    GoalCreateRequest:
+      type: object
+      required:
+        - brand_ident
+      properties:
+        brand_ident:
+          type: string
+          description: ID of the associated brand.
+          example: ba
+        name:
+          type: string
+          description: Name of the action.
+        description:
+          type: string
+          description: Description of the action.
+        organization_id:
+          type: integer
+          description: >-
+            ID of the associated organization. If this is null, then it will be
+            global across the brand.
+        goal_type_id:
+          type: integer
+          description: ID of the goal type.
+        icon_id:
+          type: integer
+          description: >-
+            Foreign key to the Assets table, for the icon that represents this
+            action.
+        is_active:
+          type: boolean
+          description: Specifies if the goal is active. Defaults to true.
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/TypeDetails'
+        reward:
+          type: array
+          items:
+            $ref: '#/components/schemas/TypeDetails'
+    GoalUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the action.
+        description:
+          type: string
+          description: Description of the action.
+        organization_id:
+          type: integer
+          description: >-
+            ID of the associated organization. If this is null, then it will be
+            global across the brand.
+        goal_type_id:
+          type: integer
+          description: ID of the goal type.
+        icon_id:
+          type: integer
+          description: >-
+            Foreign key to the Assets table, for the icon that represents this
+            action.
+        is_active:
+          type: boolean
+          description: Specifies if the goal is active. Defaults to true.
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/TypeDetails'
+        reward:
+          type: array
+          items:
+            $ref: '#/components/schemas/TypeDetails'
+    GoalTypeResult:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/GoalTypeDisplay'
+    GoalTypeDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: GoalType
+        id:
+          type: integer
+          example: 1
+        ident:
+          type: string
+          example: streak
+        created_int:
+          type: integer
+          example: 1715355515996
+        updated_int:
+          type: integer
+          example: 1715355515996
+    OrganizationResults:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrganizationDisplay'
+    OrganizationDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: Organization
+        id:
+          type: integer
+          example: 1
+        brand_ident:
+          type: string
+          example: ba
+        name:
+          type: string
+          example: YMCA
+        is_active:
+          type: boolean
+        config:
+          type: object
+        created_int:
+          type: integer
+          example: 1715355515996
+        updated_int:
+          type: integer
+          example: 1715355515996
+    OrganizationCreateRequest:
+      type: object
+      required:
+        - brand_ident
+        - name
+      properties:
+        brand_ident:
+          type: string
+          description: The string identifier of the associated brand, like "ba".
+        name:
+          type: string
+          description: The name of the brand variation.
+        is_active:
+          type: boolean
+          description: The active status of the brand variation.
+        config:
+          type: object
+          description: The configuration settings for the brand variation.
+    OrganizationUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the brand variation.
+        is_active:
+          type: boolean
+          description: The active status of the brand variation.
+        config:
+          type: object
+          description: The configuration settings for the brand variation.
+    UserResult:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserDisplay'
+    UserDisplay:
+      properties:
+        class_name:
+          type: string
+          default: User
+        id:
+          type: integer
+          example: 1
+        brand_ident:
+          type: string
+          example: ba
+        uuid:
+          type: string
+          example: 87a16b48-a7b9-45d0-b876-d8d7301ced29
+        protected_data:
+          type: object
+          properties:
+            brand_user_id:
+              type: string
+              example: '123456789'
+            first_name:
+              type: string
+              example: John
+            last_name:
+              type: string
+              example: Doe
+            email:
+              type: string
+              example: jdoe@example.com
+            phone:
+              type: string
+              example: '+15555555555'
+        settings:
+          type: object
+          properties:
+            timezone:
+              type: string
+              example: America/New_York
+            language:
+              type: string
+              example: en
+        created_int:
+          type: integer
+          example: 1715355515996
+        updated_int:
+          type: integer
+          example: 1715355515996
+    UserUpdateRequest:
+      type: object
+      properties:
+        preference:
+          type: string
+          example: Update parameters TBD
+    UserActionResult:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserActionDisplay'
+    UserActionDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: UserAction
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 123
+        action_id:
+          type: integer
+          example: 456
+        action_ident:
+          type: string
+          example: video_watched
+        created_int:
+          type: integer
+          example: 1715355515996
+    UserActionCreateRequest:
+      type: object
+      required:
+        - action_ident
+      properties:
+        type:
+          type: string
+          example: video_watched
+        user_id:
+          type: integer
+          example: 123
+    UserWinResults:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserWinDisplay'
+    UserWinDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: UserWin
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 123
+        goal_id:
+          type: integer
+          example: 456
+        criteria:
+          type: object
+        reward:
+          type: object
+        created_int:
+          type: integer
+          example: 1715355515996
+  parameters:
+    page:
+      name: page
+      description: The page of results to show. Default is 1
+      schema:
+        type: string
+        default: '1'
+      in: query
+    per_page:
+      name: per_page
+      description: The number of results to show for each page. Default is 10
+      schema:
+        type: string
+        default: '10'
+      in: query
+    apiKey:
+      name: x-ge-api-key
+      description: >-
+        Used if doing server-to-server communication. You will be provided an
+        API Key for each environment.
+      required: false
+      in: header
+      schema:
+        type: string
+    appId:
+      name: x-ge-app-id
+      description: >-
+        Used if doing server-to-server communication. You will be provided an
+        App ID for each environment.
+      required: false
+      in: header
+      schema:
+        type: string
+    brand:
+      name: x-ge-brand
+      description: The brand code, like <code>ba</code> or <code>ss</code>.
+      required: false
+      in: header
+      schema:
+        type: string
+    client:
+      name: x-ge-client
+      description: >-
+        The app/service that is making the request. Follows the format of
+        <code>app_platform_major_minor_patch</code>.<br><br>Examples:
+        <code>sdk_ios_0_5_1</code>, <code>sudna_web_2022_30_3</code>
+      required: false
+      in: header
+      schema:
+        type: string
+    jwt:
+      name: x-ge-jwt
+      description: >-
+        The JWT token that was passed into the SDK when initializing. We'll use
+        this to verify the member is real and get the member ID for accessing
+        their information from the remote system.
+      required: false
+      in: header
+      schema:
+        type: string
+    language:
+      name: x-ge-language
+      description: >-
+        The locale, with language and region codes, in the format of
+        <code>language-region</code>, or just the language.<br><br>Examples:
+        <code>en-GB</code>, <code>en</code>, <code>es-AR</code>. Default is
+        <code>en-US</code>.
+      required: false
+      in: header
+      schema:
+        type: string
+    timezone:
+      name: x-ge-timezone
+      description: >-
+        Timezone in the string format, like <code>America/Los_Angeles</code>.
+        Default is <code>America/Chicago</code>.
+      required: false
+      in: header
+      schema:
+        type: string
 tags:
-- name: "assets"
-  description: "Asset uploading"
-- name: "brands"
-  description: "Settings for each Brand"
-- name: "challenges"
-  description: "Challenge Info"
-- name: "configs"
-  description: "Config for the apps"
-- name: "events"
-  description: "Event data for a user, like steps updates"
-- name: "goals"
-  description: "Customer-defined goals that a user can win"
-- name: "users"
-  description: "Info and settings about the users"
-- name: "webhooks"
-  description: "Server-to-Server Data"
-- name: "wins"
-  description: "Achievements the user has earned, like streaks or badges"
+  - name: Actions
+    description: Actions can be performed by users
+  - name: Assets
+    description: Images, videos, and other media content
+  - name: Brands
+    description: 'Brands are the top level clients: Burnalong and Silver Sneakers'
+  - name: Brand Actions
+    description: Brand-Specific Action Info
+  - name: Brand Goal Types
+    description: Brand-Specific Goal Types
+  - name: Goals
+    description: Goals can be achieved by users, like streaks or achievements to earn
+  - name: Goal Types
+    description: Goal types are types of goals
+  - name: Organizations
+    description: Organizations are customers of the brands, like YMCA
+  - name: Users
+    description: Users of the Tivity platform
+  - name: User Actions
+    description: Actions taken by specific users
+  - name: User Wins
+    description: Goals won by specific users
+security:
+  - ApiKeyAuth: []
+  - jwtAuth: []
 paths:
+  /ge/actions:
+    get:
+      x-openapi-router:
+        controller: actions
+        fn: index
+      tags:
+        - Actions
+      summary: Get all actions
+      description: Returns results for all the actions in the system
+      parameters:
+        - in: query
+          name: brands
+          schema:
+            type: string
+          description: Dash separated list of brand idents to view actions for.
+          example: ba-ss
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResult'
+  /ge/actions/{id}:
+    get:
+      x-openapi-router:
+        controller: actions
+        fn: readById
+      tags:
+        - Actions
+      summary: Get an action by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the action to get
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Action retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionDisplay'
+        '404':
+          description: Action not found
   /ge/assets:
     get:
+      x-openapi-router:
+        controller: assets
+        fn: index
       tags:
-      - "assets"
-      summary: "Admins: List assets"
-      description: "To see posters for a Challenge, Badge, or Streak."
-      consumes:
-      - "multipart/form-data"
+        - Assets
+      summary: Get all assets
+      description: Returns results for all the actions in the system
       parameters:
-      - name: "asset_type"
-        in: "formData"
-        type: "string"
-        description: "Possible values: `image` | `text` | `audio` | `video`"
-        enum:
-          - "image"
-          - "text"
-          - "audio"
-          - "video"
-      - name: "slot"
-        in: "formData"
-        type: "string"
-        description: "Maps directly to the foreign key name, like `poster_id`. Only used for poster, so far. Possible values: `poster`"
-        enum:
-          - "poster"
-      - name: "assetable_type"
-        in: "formData"
-        type: "string"
-        description: "The model name that this asset goes to, like `Challenge`."
-      - name: "assetable_id"
-        in: "formData"
-        type: "string"
-        description: "The ID of the resources that this asset goes to, like `123`. Use with the 'assetable_id' field above."
-      - name: "file"
-        in: "formData"
-        type: "file"
-        description: "The file to upload."
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: query
+          name: brands
           schema:
-            $ref: "#/definitions/Asset"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+            type: string
+          description: Dash separated list of brand idents to view actions for.
+          example: ba-ss
+        - in: query
+          name: assetable_type
+          schema:
+            type: string
+          description: The type of the assetable object
+          example: App\Models\User
+        - in: query
+          name: assetable_id
+          schema:
+            type: integer
+          description: The id of the assetable object
+          example: 1
+        - in: query
+          name: slot
+          schema:
+            type: string
+          description: The type of the asset, like icon or poster.
+          example: icon
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetResult'
     post:
+      x-openapi-router:
+        controller: assets
+        fn: create
       tags:
-      - "assets"
-      summary: "Admins: Upload an asset (poster) to a resource."
-      description: "To add a poster to a Challenge, Badge, or Streak."
-      consumes:
-      - "multipart/form-data"
+        - Assets
+      summary: Create a new asset
       parameters:
-      - name: "asset_type"
-        in: "formData"
-        type: "string"
-        description: "Possible values: `image` | `text` | `audio` | `video`"
-        enum:
-          - "image"
-          - "text"
-          - "audio"
-          - "video"
-      - name: "slot"
-        in: "formData"
-        type: "string"
-        description: "Maps directly to the foreign key name, like `poster_id`. Only used for poster, so far. Possible values: `poster`"
-        enum:
-          - "poster"
-      - name: "assetable_type"
-        in: "formData"
-        type: "string"
-        description: "The model name that this asset goes to, like `Challenge`."
-      - name: "assetable_id"
-        in: "formData"
-        type: "string"
-        description: "The ID of the resources that this asset goes to, like `123`. Use with the 'assetable_id' field above."
-      - name: "file"
-        in: "formData"
-        type: "file"
-        description: "The file to upload."
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
       responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Asset"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/assets/{assetId}:
+        '201':
+          description: Asset created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDisplay'
+        '400':
+          description: Invalid input
+  /ge/assets/{id}:
     get:
       tags:
-      - "assets"
-      summary: "Admins: Show Asset by ID"
-      description: "Specific Asset to view"
+        - Assets
+      summary: Get an asset by ID
+      x-openapi-router:
+        controller: assets
+        fn: readById
       parameters:
-      - name: "assetId"
-        in: "path"
-        description: "ID of the Asset to return"
-        required: true
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: path
+          name: id
           schema:
-            $ref: "#/definitions/Asset"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+            type: integer
+          required: true
+          description: Id of the asset to get
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Asset retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDisplay'
+        '404':
+          description: Asset not found
     delete:
       tags:
-      - "assets"
-      summary: "Admins: Deletes an asset"
-      description: "Paranoid delete: sets the deleted_at to the timestamp"
+        - Assets
+      summary: Delete an asset
+      x-openapi-router:
+        controller: assets
+        fn: deleteById
       parameters:
-      - name: "assetId"
-        in: "path"
-        description: "ID of asset to delete"
-        required: true
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: path
+          name: id
           schema:
-            $ref: "#/definitions/Asset"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+            type: integer
+          required: true
+          description: Id of the asset to delete
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Asset deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDisplay'
+        '404':
+          description: Asset not found
+  /ge/brand_actions:
+    get:
+      x-openapi-router:
+        controller: brand_actions
+        fn: index
+      tags:
+        - Brand Actions
+      summary: Get all brand actions
+      description: Returns results for all the brand actions in the system
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandActionResult'
+    post:
+      x-openapi-router:
+        controller: brand_actions
+        fn: create
+      tags:
+        - Brand Actions
+      summary: Create a new brand action
+      description: Add a new brand action to the system
+      parameters:
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandActionCreateRequest'
+      responses:
+        '201':
+          description: Brand action created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandActionDisplay'
+        '400':
+          description: Invalid input
+  /ge/brand_actions/{id}:
+    get:
+      x-openapi-router:
+        controller: brand_actions
+        fn: readById
+      tags:
+        - Brand Actions
+      summary: Get a brand action by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the brand action to get
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Brand action retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandActionDisplay'
+        '404':
+          description: Brand action not found
+    put:
+      x-openapi-router:
+        controller: brand_actions
+        fn: updateById
+      tags:
+        - Brand Actions
+      summary: Update a brand action
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the brand action to update
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandActionUpdateRequest'
+      responses:
+        '200':
+          description: Brand action updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandActionDisplay'
+        '400':
+          description: Invalid input
+        '404':
+          description: Brand action not found
+    delete:
+      x-openapi-router:
+        controller: brand_actions
+        fn: deleteById
+      tags:
+        - Brand Actions
+      summary: Delete a brand action
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the brand action to delete
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '204':
+          description: Brand action deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandActionDisplay'
+        '404':
+          description: Brand action not found
+  /ge/brand_goal_types:
+    get:
+      x-openapi-router:
+        controller: brand_goal_types
+        fn: index
+      tags:
+        - Brand Goal Types
+      summary: Get all brand goal types
+      description: Returns results for all the brand goal types in the system
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandGoalTypeResult'
+    post:
+      x-openapi-router:
+        controller: brand_goal_types
+        fn: create
+      tags:
+        - Brand Goal Types
+      summary: Create a new brand goal type
+      description: Add a new brand goal type to the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandGoalTypeCreateRequest'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandGoalTypeDisplay'
+        '400':
+          description: Invalid input
+  /ge/brand_goal_types/{id}:
+    get:
+      x-openapi-router:
+        controller: brand_goal_types
+        fn: readById
+      tags:
+        - Brand Goal Types
+      summary: Get a brand goal type by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the brand goal type to get
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandGoalTypeDisplay'
+        '404':
+          description: Not found
+    put:
+      x-openapi-router:
+        controller: brand_goal_types
+        fn: updateById
+      tags:
+        - Brand Goal Types
+      summary: Update a brand goal type
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the brand goal type to update
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandGoalTypeUpdateRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandGoalTypeDisplay'
+        '400':
+          description: Invalid input
+        '404':
+          description: Not found
+    delete:
+      x-openapi-router:
+        controller: brand_goal_types
+        fn: deleteById
+      tags:
+        - Brand Goal Types
+      summary: Delete a brand goal type
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the brand goal type to delete
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '204':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandGoalTypeDisplay'
+        '404':
+          description: Not found
   /ge/brands:
     get:
+      x-openapi-router:
+        controller: brands
+        fn: index
+        action: read
+        subject: Brand
+      summary: Get all brands
+      description: Returns results for all the brands in the system
       tags:
-      - "brands"
-      summary: "Admins: Get all brands"
-      description: "Returns results for all the brands in the system"
+        - Brands
       parameters:
-      - name: "page"
-        in: "query"
-        description: "The page of results to show. Default is 1"
-        required: false
-        type: "string"
-      - name: "per_page"
-        in: "query"
-        description: "The number of results to show for each page. Default is 10"
-        required: false
-        type: "string"
-      - name: "enabled"
-        in: "query"
-        description: "For viewing the brands that are enabled or not, or all brands. Default is to show all brands."
-        required: false
-        type: "string"
-        enum:
-        - "all"
-        - "1"
-        - "0"
-        default: "all"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
       responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/BrandResults"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/brands/{brandIdent}:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandResults'
+  /ge/brands/{ident}:
     get:
+      x-openapi-router:
+        controller: brands
+        fn: readById
+        action: read
+        subject: Brand
+      summary: Get a brand by string identifier
       tags:
-      - "brands"
-      summary: "Admins: Find brand by short code string"
-      description: "We're using the code instead of the integer as the primary identifier. So using 'su', 'tbm', or 'af'"
+        - Brands
       parameters:
-      - name: "brandIdent"
-        in: "path"
-        description: "Short code of brand to return"
-        required: true
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: path
+          name: ident
           schema:
-            $ref: "#/definitions/Brand"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+            type: string
+          required: true
+          description: >-
+            We're using the code instead of the integer as the primary
+            identifier. So using 'ba' or 'ss'.
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Brand retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandDisplay'
+        '404':
+          description: Brand not found
     put:
+      x-openapi-router:
+        controller: brands
+        fn: updateById
+        action: update
+        subject: Brand
+      summary: Update a brand by string identifier
       tags:
-      - "brands"
-      summary: "Admins: Update brand by short code string"
-      description: "We're using the code instead of the integer as the primary identifier. So using 'su', 'tbm', or 'af'"
+        - Brands
       parameters:
-      - name: "brandIdent"
-        in: "path"
-        description: "Short code of brand to update"
+        - in: path
+          name: ident
+          schema:
+            type: string
+          required: true
+          description: >-
+            We're using the code instead of the integer as the primary
+            identifier. So using 'ba' or 'ss'.
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
         required: true
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandUpdateRequest'
       responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Brand"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/challenges:
+        '200':
+          description: Brand updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandDisplay'
+        '400':
+          description: Invalid input
+        '404':
+          description: Brand not found
+  /ge/data/health:
     get:
+      x-openapi-router:
+        controller: data
+        fn: health
+      summary: Get requested fields from server
       tags:
-      - "challenges"
-      summary: "List Challenges"
-      description: "Returns results for all the challenges in the system that the user has access to see"
+        - User Health Data
       parameters:
-      - name: "page"
-        in: "query"
-        description: "The page of results to show. Default is 1"
-        required: false
-        type: "string"
-      - name: "per_page"
-        in: "query"
-        description: "The number of results to show for each page. Default is 10"
-        required: false
-        type: "string"
-      - name: "enabled"
-        in: "query"
-        description: "For viewing the challenges that are enabled or not, or all challenges. Default is to show all challenges."
-        required: false
-        type: "string"
-        enum:
-        - "all"
-        - "1"
-        - "0"
-        default: "all"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
       responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/ChallengeResults"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tbd:
+                    type: string
+                    example: tbd
     post:
+      x-openapi-router:
+        controller: data
+        fn: health
+      summary: Send health data update
       tags:
-      - "challenges"
-      summary: "Admins: Create Challenge"
-      description: "For creating a new challenge"
+        - User Health Data
       parameters:
-      - in: "body"
-        name: "body"
-        schema:
-          type: "object"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tbd:
+                  type: string
+                  example: tbd
       responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Challenge"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/challenges/{challengeId}:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tbd:
+                    type: string
+                    example: tbd
+  /ge/goal_types:
     get:
+      x-openapi-router:
+        controller: goal_types
+        fn: index
+      summary: Get all goal types
+      description: Returns results for all the goal types in the system
       tags:
-      - "challenges"
-      summary: "Show Challenge by ID"
-      description: "Display info for a specific Challenge"
+        - Goal Types
       parameters:
-      - name: "challengeId"
-        in: "path"
-        description: "ID of the Challenge to return"
-        required: true
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: query
+          name: brands
           schema:
-            $ref: "#/definitions/Challenge"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-    put:
-      tags:
-      - "challenges"
-      summary: "Admins: Update Challenge"
-      description: "Change the settings of a challenge"
-      parameters:
-      - name: "challengeId"
-        in: "path"
-        description: "ID of the Challenge to update"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "body"
-        schema:
-          type: "object"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
+            type: string
+          description: Dash separated list of brand idents to view goal types for.
+          example: ba-ss
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
       responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Challenge"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-    delete:
-      tags:
-      - "challenges"
-      summary: "Admins: Delete Challenge"
-      description: "For deleting a challenge"
-      parameters:
-      - name: "challengeId"
-        in: "path"
-        description: "ID of the Challenge to delete"
-        required: true
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Challenge"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/configs/app:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalTypeResult'
+  /ge/goal_types/{id}:
     get:
+      x-openapi-router:
+        controller: goal_types
+        fn: readById
+      summary: Get a GoalType by ID
       tags:
-      - "configs"
-      summary: "App Config"
-      description: "This contains colors, fonts, and translations for a specific brand's app"
+        - Goal Types
       parameters:
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: path
+          name: id
           schema:
-            $ref: "#/definitions/ConfigsApp"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/events:
-    post:
-      tags:
-      - "events"
-      summary: "Posting User Event Data"
-      description: "This will be the endpoint that is most used, for when sending updates to the server for when a user completes some action or has some sort of progress."
-      parameters:
-      - in: "body"
-        name: "body"
-        schema:
-          type: "object"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
+            type: integer
+          required: true
+          description: ID of the GoalType to get
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
       responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/WebhookResponse"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+        '200':
+          description: GoalType retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalTypeDisplay'
+        '404':
+          description: GoalType not found
   /ge/goals:
     get:
       tags:
-      - "goals"
-      summary: "List Goals"
-      description: "Returns results for all the goals"
+        - Goals
+      summary: Get all goals
+      description: Get all goals
+      x-openapi-router:
+        controller: goals
+        fn: index
+        action: readById
+        subject: Goal
       parameters:
-      - name: "page"
-        in: "query"
-        description: "The page of results to show. Default is 1"
-        required: false
-        type: "string"
-      - name: "per_page"
-        in: "query"
-        description: "The number of results to show for each page. Default is 10"
-        required: false
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: query
+          name: brands
           schema:
-            $ref: "#/definitions/GoalResults"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+            type: string
+          description: Dash separated list of brand idents to view goals for.
+          example: ba-ss
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalResult'
     post:
+      summary: Create a new goal
+      description: Create a new goal with the given details
       tags:
-      - "goals"
-      summary: "Admins: Create Goal"
-      description: "For creating a new goal"
+        - Goals
+      x-openapi-router:
+        controller: goals
+        fn: create
+        action: create
+        subject: Goal
       parameters:
-      - in: "body"
-        name: "body"
-        schema:
-          type: "object"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalCreateRequest'
       responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Goal"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/goals/{goalId}:
+        '201':
+          description: Goal created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalDisplay'
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+  /ge/goals/{id}:
     get:
+      x-openapi-router:
+        controller: goals
+        fn: readById
+      summary: Get a goal by ID
       tags:
-      - "goals"
-      summary: "Show Goal by ID"
-      description: "Display info for a specific Goal"
+        - Goals
       parameters:
-      - name: "goalId"
-        in: "path"
-        description: "ID of the Goal to return"
-        required: true
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: path
+          name: id
           schema:
-            $ref: "#/definitions/Goal"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+            type: integer
+          required: true
+          description: ID of the goal to get
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Goal retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalDisplay'
+        '404':
+          description: Goal not found
     put:
+      x-openapi-router:
+        controller: goals
+        fn: updateById
+      summary: Update a goal
       tags:
-      - "goals"
-      summary: "Admins: Update Goal"
-      description: "Change the editable settings of a Goal"
+        - Goals
       parameters:
-      - name: "goalId"
-        in: "path"
-        description: "ID of the Goal to update"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "body"
-        schema:
-          type: "object"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: path
+          name: id
           schema:
-            $ref: "#/definitions/Goal"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+            type: integer
+          required: true
+          description: ID of the goal to update
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalUpdateRequest'
+      responses:
+        '200':
+          description: Goal updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalDisplay'
+        '400':
+          description: Invalid input
+        '404':
+          description: Goal not found
     delete:
+      x-openapi-router:
+        controller: goals
+        fn: deleteById
+      summary: Delete a goal
       tags:
-      - "goals"
-      summary: "Admins: Delete Goal"
-      description: "For deleting a Goal"
+        - Goals
       parameters:
-      - name: "goalId"
-        in: "path"
-        description: "ID of the Goal to delete"
-        required: true
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: path
+          name: id
           schema:
-            $ref: "#/definitions/Goal"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+            type: integer
+          required: true
+          description: Id of the goal to delete
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '204':
+          description: Goal deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoalDisplay'
+        '404':
+          description: Goal not found
+  /ge/organizations:
+    get:
+      x-openapi-router:
+        controller: organizations
+        fn: index
+      summary: Get all organizations
+      description: >-
+        Returns results for all the organizations in the system that the user
+        has access to.
+      tags:
+        - Organizations
+      parameters:
+        - in: query
+          name: brands
+          schema:
+            type: string
+          description: Dash separated list of brand idents to view organizations for.
+          example: ba-ss
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResults'
+    post:
+      x-openapi-router:
+        controller: organizations
+        fn: create
+      summary: Create a new organization for a specific brand
+      tags:
+        - Organizations
+      parameters:
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationCreateRequest'
+      responses:
+        '201':
+          description: Organization created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationDisplay'
+        '400':
+          description: Invalid input
+  /ge/organizations/{id}:
+    get:
+      x-openapi-router:
+        controller: organizations
+        fn: readById
+      summary: Get a organization by ID
+      tags:
+        - Organizations
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the organization to get
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Organization retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationDisplay'
+        '404':
+          description: Organization not found
+    put:
+      x-openapi-router:
+        controller: organizations
+        fn: updateById
+      summary: Update a organization
+      tags:
+        - Organizations
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the organization to update
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationUpdateRequest'
+      responses:
+        '200':
+          description: Organization updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationDisplay'
+        '400':
+          description: Invalid input
+        '404':
+          description: Organization not found
+    delete:
+      x-openapi-router:
+        controller: organizations
+        fn: deleteById
+      summary: Delete a organization
+      tags:
+        - Organizations
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the organization to delete
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '201':
+          description: Organization deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationDisplay'
+        '405':
+          description: Organization not found
+  /ge/user_actions:
+    get:
+      x-openapi-router:
+        controller: user_actions
+        fn: index
+      summary: Get all user actions
+      description: >-
+        Returns results for all UserActions in the system that the user has
+        access to.
+      tags:
+        - User Actions
+      parameters:
+        - in: query
+          name: brands
+          schema:
+            type: string
+          description: Dash separated list of brand idents to view UserActions for.
+          example: ba-ss
+        - in: query
+          name: organizations
+          schema:
+            type: string
+          description: Dash separated list of organization IDs to view UserActions for.
+          example: 4-51-33
+        - in: query
+          name: users
+          schema:
+            type: string
+          description: Dash separated list of user IDs to view UserActions for.
+          example: 6212-151-353737
+        - in: query
+          name: start_int
+          schema:
+            type: integer
+          description: Timestamp in milliseconds since epoch to start showing results from.
+          example: 1704088800000
+        - in: query
+          name: stop_int
+          schema:
+            type: integer
+          description: Timestamp in milliseconds since epoch to stop showing results from.
+          example: 1714539600000
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: User actions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserActionResult'
+    post:
+      x-openapi-router:
+        controller: user_actions
+        fn: create
+      summary: Create a new user action
+      tags:
+        - User Actions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserActionCreateRequest'
+      responses:
+        '201':
+          description: User action created successfully
+        '400':
+          description: Invalid input
+  /ge/user_actions/{id}:
+    get:
+      x-openapi-router:
+        controller: user_actions
+        fn: readById
+      summary: Get a user action by ID
+      tags:
+        - User Actions
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the user action to get
+      responses:
+        '200':
+          description: User action retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserActionDisplay'
+        '404':
+          description: User action not found
+  /ge/users/me/actions:
+    get:
+      x-openapi-router:
+        controller: user_actions
+        fn: index
+      summary: Get my actions
+      description: Returns results for all UserActions in the system for this user.
+      tags:
+        - User Actions
+      parameters:
+        - in: query
+          name: start_int
+          schema:
+            type: integer
+          description: Timestamp in milliseconds since epoch to start showing results from.
+          example: 1704088800000
+        - in: query
+          name: stop_int
+          schema:
+            type: integer
+          description: Timestamp in milliseconds since epoch to stop showing results from.
+          example: 1714539600000
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: User actions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserActionResult'
+  /ge/user_wins:
+    get:
+      x-openapi-router:
+        controller: user_wins
+        fn: index
+      summary: Get all user wins
+      tags:
+        - User Wins
+      parameters:
+        - in: query
+          name: brands
+          schema:
+            type: string
+          description: Dash separated list of brand idents to view UserWins for.
+          example: ba-ss
+        - in: query
+          name: organizations
+          schema:
+            type: string
+          description: Dash separated list of organization IDs to view UserWins for.
+          example: 4-51-33
+        - in: query
+          name: users
+          schema:
+            type: string
+          description: Dash separated list of user IDs to view UserWins for.
+          example: 6212-151-353737
+        - in: query
+          name: badges
+          schema:
+            type: string
+          description: Dash separated list of badge IDs to view UserWins for.
+          example: 6212-151-353737
+        - in: query
+          name: start_int
+          schema:
+            type: integer
+          description: Timestamp in milliseconds since epoch to start showing results from.
+          example: 1704088800000
+        - in: query
+          name: stop_int
+          schema:
+            type: integer
+          description: Timestamp in milliseconds since epoch to stop showing results from.
+          example: 1714539600000
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: An array of user wins
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWinResults'
+  /ge/user_wins/{id}:
+    get:
+      x-openapi-router:
+        controller: user_wins
+        fn: readById
+      summary: Get a user win by ID
+      tags:
+        - User Wins
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the user win to get
+      responses:
+        '200':
+          description: User win retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWinDisplay'
+        '404':
+          description: User win not found
+  /ge/users/me/wins:
+    get:
+      x-openapi-router:
+        controller: user_wins
+        fn: index
+      summary: Get my wins
+      description: Returns results for all UserWins in the system for this user.
+      tags:
+        - User Wins
+      parameters:
+        - in: query
+          name: start_int
+          schema:
+            type: integer
+          description: Timestamp in milliseconds since epoch to start showing results from.
+          example: 1704088800000
+        - in: query
+          name: stop_int
+          schema:
+            type: integer
+          description: Timestamp in milliseconds since epoch to stop showing results from.
+          example: 1714539600000
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: User actions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserWinResults'
   /ge/users:
     get:
       tags:
-      - "users"
-      summary: "Admin: List users"
-      description: "Returns results for all the users in the system that the admin has access to"
+        - Users
+      summary: 'Admins: Get all users'
+      description: Retrieve a list of all users
+      x-openapi-router:
+        controller: users
+        fn: index
+        action: read
+        subject: User
       parameters:
-      - name: "brands"
-        in: "query"
-        description: "Dash-delimited list of brand idents to include, as long as the user has read rights to the brand. If this is blank, then it will include all of the brands that the user has read rights to. Example: `su-tbm`"
-        required: false
-        type: "string"
-      - name: "term"
-        in: "query"
-        description: "Search term to find a user with"
-        required: false
-        type: "string"
-      - name: "page"
-        in: "query"
-        description: "The page of results to show. Default is 1"
-        required: false
-        type: "string"
-      - name: "per_page"
-        in: "query"
-        description: "The number of results to show for each page. Default is 10"
-        required: false
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: query
+          name: brands
           schema:
-            $ref: "#/definitions/UserResults"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+            type: string
+          required: false
+          description: Dash separated list of brand idents to view users for.
+          example: ba-ss
+        - in: query
+          name: include
+          schema:
+            type: string
+          required: false
+          description: >-
+            Dash separated list of optional fields to include. In this case,
+            `protected_data` is the only option.
+          example: protected_data
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResult'
+  /ge/users/{id}:
+    get:
+      x-openapi-router:
+        controller: users
+        fn: readById
+      summary: Get a user by ID
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the user to get
+        - in: query
+          name: include
+          schema:
+            type: string
+          required: false
+          description: >-
+            Dash separated list of optional fields to include. In this case,
+            `protected_data` is the only option.
+          example: protected_data
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDisplay'
+        '404':
+          description: User not found
+    put:
+      x-openapi-router:
+        controller: users
+        fn: updateById
+      summary: Update a user
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the user to update
+        - in: query
+          name: include
+          schema:
+            type: string
+          required: false
+          description: >-
+            Dash separated list of optional fields to include. In this case,
+            `protected_data` is the only option.
+          example: protected_data
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDisplay'
+        '400':
+          description: Invalid input
+        '404':
+          description: User not found
   /ge/users/me:
     get:
+      x-openapi-router:
+        controller: users
+        fn: readById
+      summary: Get my user
       tags:
-      - "users"
-      summary: "Show user info for logged-in user"
-      description: "Get a specific user's info"
+        - Users
       parameters:
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: query
+          name: include
           schema:
-            $ref: "#/definitions/User"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/users/{userId}:
-    get:
-      tags:
-      - "users"
-      summary: "Admin: Find user by ID"
-      description: "Get a specific user's info"
-      parameters:
-      - name: "userId"
-        in: "path"
-        description: "ID of user to return"
-        required: true
-        type: "integer"
-        format: "int64"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
+            type: string
+          required: false
+          description: >-
+            Dash separated list of optional fields to include. In this case,
+            `protected_data` is the only option.
+          example: protected_data
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
       responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/User"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/webhooks/{brandIdent}:
-    post:
-      tags:
-      - "webhooks"
-      summary: "For server-to-server sending of data"
-      description: "This will be used to update us that there's been a change in data for PT sessions, door swipes, or anything else."
-      parameters:
-      - name: "brandIdent"
-        in: "path"
-        description: "The brand code, like `su` or `af`"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "body"
-        schema:
-          type: "object"
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/WebhookResponse"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/wins:
-    get:
-      tags:
-      - "wins"
-      summary: "List Wins"
-      description: "Returns results for all the user wins"
-      parameters:
-      - name: "page"
-        in: "query"
-        description: "The page of results to show. Default is 1"
-        required: false
-        type: "string"
-      - name: "per_page"
-        in: "query"
-        description: "The number of results to show for each page. Default is 10"
-        required: false
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/WinResults"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-    post:
-      tags:
-      - "wins"
-      summary: "Admins: Create Win"
-      description: "For creating a new win"
-      parameters:
-      - in: "body"
-        name: "body"
-        schema:
-          type: "object"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Win"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-  /ge/wins/{winId}:
-    get:
-      tags:
-      - "wins"
-      summary: "Show Win by ID"
-      description: "Display info for a specific Win"
-      parameters:
-      - name: "winId"
-        in: "path"
-        description: "ID of the Win to return"
-        required: true
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Win"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDisplay'
+        '404':
+          description: User not found
     put:
+      x-openapi-router:
+        controller: users
+        fn: updateById
+      summary: Update my user
       tags:
-      - "wins"
-      summary: "Admins: Update Win"
-      description: "Change the editable settings of a Win"
+        - Users
       parameters:
-      - name: "winId"
-        in: "path"
-        description: "ID of the Win to update"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "body"
-        schema:
-          type: "object"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
-      responses:
-        "200":
-          description: "successful operation"
+        - in: query
+          name: include
           schema:
-            $ref: "#/definitions/Win"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-    delete:
-      tags:
-      - "wins"
-      summary: "Admins: Delete Win"
-      description: "For deleting a Win"
-      parameters:
-      - name: "winId"
-        in: "path"
-        description: "ID of the Win to delete"
+            type: string
+          required: false
+          description: >-
+            Dash separated list of optional fields to include. In this case,
+            `protected_data` is the only option.
+          example: protected_data
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
         required: true
-        type: "string"
-      - $ref: '#/parameters/xBrand'
-      - $ref: '#/parameters/xJwt'
-      - $ref: '#/parameters/xLanguage'
-      - $ref: '#/parameters/xClient'
-      - $ref: '#/parameters/xTimezone'
-      - $ref: '#/parameters/xAppId'
-      - $ref: '#/parameters/xApiKey'
-      - $ref: '#/parameters/xAdminJwt'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
       responses:
-        "200":
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Win"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not found"
-definitions:
-  Asset:
-    type: "object"
-    properties:
-      class_name:
-        type: "string"
-        default: "Asset"
-      id:
-        type: "integer"
-      name:
-        type: "string"
-      filename:
-        type: "string"
-      base_filename:
-        type: "string"
-      file_size:
-        type: "integer"
-      file_type:
-        type: "string"
-      asset_type:
-        type: "string"
-      slot:
-        type: "string"
-      assetable_type:
-        type: "string"
-      assetable_id:
-        type: "integer"
-      media:
-        type: "string"
-      uuid:
-        type: "string"
-  BrandResults:
-    type: "object"
-    properties:
-      page:
-        type: "integer"
-        format: "int32"
-      per_page:
-        type: "integer"
-        format: "int32"
-      total:
-        type: "integer"
-        format: "int32"
-      total_pages:
-        type: "integer"
-        format: "int32"
-      results:
-        type: "array"
-        items:
-          $ref: "#/definitions/Brand"
-  Brand:
-    type: "object"
-    properties:
-      class_name:
-        type: "string"
-        default: "Brand"
-      id:
-        type: "integer"
-        format: "int32"
-      ident:
-        type: "string"
-      name:
-        type: "string"
-      is_enabled:
-        type: "boolean"
-        default: false
-      created_int:
-        type: "integer"
-        format: "int32"
-      updated_int:
-        type: "integer"
-        format: "int32"
-  ChallengeResults:
-    type: "object"
-    properties:
-      page:
-        type: "integer"
-        format: "int32"
-      per_page:
-        type: "integer"
-        format: "int32"
-      total:
-        type: "integer"
-        format: "int32"
-      total_pages:
-        type: "integer"
-        format: "int32"
-      results:
-        type: "array"
-        items:
-          $ref: "#/definitions/Challenge"
-  Challenge:
-    type: "object"
-    properties:
-      class_name:
-        type: "string"
-        default: "Challenge"
-      id:
-        type: "integer"
-        format: "int32"
-      name:
-        type: "string"
-      description:
-        type: "string"
-      poster_id:
-        type: "integer"
-        format: "int32"
-      poster_url:
-        type: "string"
-      rules:
-        type: "object"
-      created_int:
-        type: "integer"
-        format: "int32"
-      updated_int:
-        type: "integer"
-        format: "int32"
-  ConfigsApp:
-    type: "object"
-    properties:
-      colors:
-        type: "object"
-      features:
-        type: "object"
-      translations:
-        type: "object"
-  GoalResults:
-    type: "object"
-    properties:
-      page:
-        type: "integer"
-        format: "int32"
-      per_page:
-        type: "integer"
-        format: "int32"
-      total:
-        type: "integer"
-        format: "int32"
-      total_pages:
-        type: "integer"
-        format: "int32"
-      results:
-        type: "array"
-        items:
-          $ref: "#/definitions/Goal"
-  Goal:
-    type: "object"
-    properties:
-      class_name:
-        type: "string"
-        default: "Goal"
-      id:
-        type: "integer"
-        format: "int32"
-      name:
-        type: "string"
-      description:
-        type: "string"
-      poster_id:
-        type: "integer"
-        format: "int32"
-      poster_url:
-        type: "string"
-      rules:
-        type: "object"
-      created_int:
-        type: "integer"
-        format: "int32"
-      updated_int:
-        type: "integer"
-        format: "int32"
-  UserResults:
-    type: "object"
-    properties:
-      page:
-        type: "integer"
-        format: "int32"
-      per_page:
-        type: "integer"
-        format: "int32"
-      total:
-        type: "integer"
-        format: "int32"
-      total_pages:
-        type: "integer"
-        format: "int32"
-      results:
-        type: "array"
-        items:
-          $ref: "#/definitions/User"
-  User:
-    type: "object"
-    properties:
-      class_name:
-        type: "string"
-        default: "User"
-      id:
-        type: "integer"
-        format: "int32"
-      name:
-        type: "string"
-      brand_ident:
-        type: "string"
-      brand_user_id:
-        type: "string"
-      email:
-        type: "string"
-      first_name:
-        type: "string"
-      last_name:
-        type: "string"
-      timezone:
-        type: "string"
-      language:
-        type: "string"
-      points:
-        type: "integer"
-        format: "int32"
-      settings:
-        type: "object"
-      activity:
-        type: "object"
-      created_int:
-        type: "integer"
-        format: "int32"
-      updated_int:
-        type: "integer"
-        format: "int32"
-  WebhookResponse:
-    type: "object"
-    properties:
-      ok:
-        type: "boolean"
-        default: true
-  WinResults:
-    type: "object"
-    properties:
-      page:
-        type: "integer"
-        format: "int32"
-      per_page:
-        type: "integer"
-        format: "int32"
-      total:
-        type: "integer"
-        format: "int32"
-      total_pages:
-        type: "integer"
-        format: "int32"
-      results:
-        type: "array"
-        items:
-          $ref: "#/definitions/Win"
-  Win:
-    type: "object"
-    properties:
-      class_name:
-        type: "string"
-        default: "Win"
-      id:
-        type: "integer"
-        format: "int32"
-      name:
-        type: "string"
-      win_type:
-        type: "string"
-      win_int:
-        type: "integer"
-        format: "int32"
-      created_int:
-        type: "integer"
-        format: "int32"
-      updated_int:
-        type: "integer"
-        format: "int32"
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDisplay'
+        '400':
+          description: Invalid input
+        '404':
+          description: User not found
