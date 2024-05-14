@@ -15,7 +15,7 @@ info:
     authentication tokens as well as client info.
 
 
-    <table><tr><th style="text-align: left; font-size: 1.1em; color: #666">Header</th><th style="text-align: left; font-size: 1.1em; color: #666">Description</th></tr><tr><td><b>x-ge-api-key</b></td><td>Used
+    <table><tr><th>Header</th><th>Description</th></tr><tr><td><b>x-ge-api-key</b></td><td>Used
     if doing server-to-server communication. You will be provided an API Key for
     each environment.</td></tr><tr><td><b>x-ge-app-id</b></td><td>Used if doing
     server-to-server communication. You will be provided an App ID for each
@@ -188,6 +188,92 @@ components:
           type: string
           format: binary
           description: The file to upload.
+    BadgeResult:
+      allOf:
+        - $ref: '#/components/schemas/DefaultPagination'
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/BadgeDisplay'
+    BadgeDisplay:
+      type: object
+      properties:
+        class_name:
+          type: string
+          default: Badge
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Weekend Warrior
+        description:
+          type: string
+          example: Earned by completing 5 workouts on the weekend.
+        brand_ident:
+          type: string
+          example: ba
+        organization_id:
+          type: integer
+          example: 3
+        icon_id:
+          type: integer
+          example: 1
+        icon_url:
+          type: string
+          example: https://example.com/icon.png
+        created_int:
+          type: integer
+          example: 1715355515996
+        updated_int:
+          type: integer
+          example: 1715355515996
+    BadgeCreateRequest:
+      type: object
+      required:
+        - brand_ident
+      properties:
+        brand_ident:
+          type: string
+          description: ID of the associated brand.
+          example: ba
+        name:
+          type: string
+          description: Name of the badge.
+        description:
+          type: string
+          description: Description of the badge.
+        organization_id:
+          type: integer
+          description: >-
+            ID of the associated organization. If this is null, then it will be
+            global across the brand.
+        icon_id:
+          type: integer
+          description: >-
+            Foreign key to the Assets table, for the icon that represents this
+            badge.
+    BadgeUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the badge.
+        description:
+          type: string
+          description: Description of the badge.
+        organization_id:
+          type: integer
+          description: >-
+            ID of the associated organization. If this is null, then it will be
+            global across the brand.
+        icon_id:
+          type: integer
+          description: >-
+            Foreign key to the Assets table, for the icon that represents this
+            badge.
     BrandResults:
       allOf:
         - $ref: '#/components/schemas/DefaultPagination'
@@ -499,10 +585,10 @@ components:
           example: ba
         name:
           type: string
-          description: Name of the action.
+          description: Name of the goal.
         description:
           type: string
-          description: Description of the action.
+          description: Description of the goal.
         organization_id:
           type: integer
           description: >-
@@ -515,7 +601,7 @@ components:
           type: integer
           description: >-
             Foreign key to the Assets table, for the icon that represents this
-            action.
+            goal.
         is_active:
           type: boolean
           description: Specifies if the goal is active. Defaults to true.
@@ -532,10 +618,10 @@ components:
       properties:
         name:
           type: string
-          description: Name of the action.
+          description: Name of the goal.
         description:
           type: string
-          description: Description of the action.
+          description: Description of the goal.
         organization_id:
           type: integer
           description: >-
@@ -548,7 +634,7 @@ components:
           type: integer
           description: >-
             Foreign key to the Assets table, for the icon that represents this
-            action.
+            goal.
         is_active:
           type: boolean
           description: Specifies if the goal is active. Defaults to true.
@@ -870,6 +956,8 @@ tags:
     description: Actions can be performed by users
   - name: Assets
     description: Images, videos, and other media content
+  - name: Badges
+    description: Badges can be earned by users for completing goals
   - name: Brands
     description: 'Brands are the top level clients: Burnalong and Silver Sneakers'
   - name: Brand Actions
@@ -1100,6 +1188,174 @@ paths:
                 $ref: '#/components/schemas/AssetDisplay'
         '404':
           description: Asset not found
+  /ge/badges:
+    get:
+      tags:
+        - Badges
+      summary: Get all badges
+      description: Get all badges
+      x-openapi-router:
+        controller: badges
+        fn: index
+        action: readById
+        subject: Badge
+      parameters:
+        - in: query
+          name: brands
+          schema:
+            type: string
+          description: Dash separated list of brand idents to view badges for.
+          example: ba-ss
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadgeResult'
+    post:
+      summary: Create a new badge
+      description: Create a new badge with the given details
+      tags:
+        - Badges
+      x-openapi-router:
+        controller: badges
+        fn: create
+        action: create
+        subject: Badge
+      parameters:
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BadgeCreateRequest'
+      responses:
+        '201':
+          description: Badge created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadgeDisplay'
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+  /ge/badges/{id}:
+    get:
+      x-openapi-router:
+        controller: badges
+        fn: readById
+      summary: Get a badge by ID
+      tags:
+        - Badges
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the badge to get
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '200':
+          description: Badge retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadgeDisplay'
+        '404':
+          description: Badge not found
+    put:
+      x-openapi-router:
+        controller: badges
+        fn: updateById
+      summary: Update a badge
+      tags:
+        - Badges
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: ID of the badge to update
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BadgeUpdateRequest'
+      responses:
+        '200':
+          description: Badge updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadgeDisplay'
+        '400':
+          description: Invalid input
+        '404':
+          description: Badge not found
+    delete:
+      x-openapi-router:
+        controller: badges
+        fn: deleteById
+      summary: Delete a badge
+      tags:
+        - Badges
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the badge to delete
+        - $ref: '#/components/parameters/apiKey'
+        - $ref: '#/components/parameters/appId'
+        - $ref: '#/components/parameters/brand'
+        - $ref: '#/components/parameters/client'
+        - $ref: '#/components/parameters/jwt'
+        - $ref: '#/components/parameters/language'
+        - $ref: '#/components/parameters/timezone'
+      responses:
+        '204':
+          description: Badge deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadgeDisplay'
+        '404':
+          description: Badge not found
   /ge/brand_actions:
     get:
       x-openapi-router:
